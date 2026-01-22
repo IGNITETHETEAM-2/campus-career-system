@@ -16,25 +16,24 @@ function Notices() {
   });
 
   const categories = ['All', 'Academic', 'Placement', 'Training', 'General'];
-  const priorities = ['High', 'Medium', 'Low'];
 
   useEffect(() => {
+    const fetchNotices = async () => {
+      try {
+        setLoading(true);
+        const queryParam = activeCategory !== 'All' ? `?category=${activeCategory}` : '';
+        const data = await apiCall(`/notices${queryParam}`);
+        setNotices(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setError('Failed to load notices');
+        setNotices([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchNotices();
   }, [activeCategory]);
-
-  const fetchNotices = async () => {
-    try {
-      setLoading(true);
-      const queryParam = activeCategory !== 'All' ? `?category=${activeCategory}` : '';
-      const data = await apiCall(`/notices${queryParam}`);
-      setNotices(Array.isArray(data) ? data : []);
-    } catch (error) {
-      setError('Failed to load notices');
-      setNotices([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;

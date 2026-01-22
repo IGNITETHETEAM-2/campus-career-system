@@ -9,25 +9,25 @@ const LearningRoadmap = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const fetchRoadmaps = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.get('http://localhost:5000/api/ai/roadmaps', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setRoadmaps(response.data);
+                if (response.data.length > 0) {
+                    selectRoadmap(response.data[0]);
+                }
+            } catch (error) {
+                console.error('Error fetching roadmaps:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchRoadmaps();
     }, []);
-
-    const fetchRoadmaps = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:5000/api/ai/roadmaps', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setRoadmaps(response.data);
-            if (response.data.length > 0) {
-                selectRoadmap(response.data[0]);
-            }
-        } catch (error) {
-            console.error('Error fetching roadmaps:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const selectRoadmap = async (roadmap) => {
         setSelectedRoadmap(roadmap);
