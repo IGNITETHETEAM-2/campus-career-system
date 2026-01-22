@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import App from './App';
 
 // Mock the apiCall function to prevent network calls during testing
@@ -8,7 +9,7 @@ jest.mock('./api', () => ({
 }));
 
 test('renders app without crashing', () => {
-  render(<App />);
+  const { container } = render(<App />);
   // App initializes and should render, even if not authenticated
-  expect(document.body).toBeInTheDocument();
+  expect(container).toBeInTheDocument();
 });
