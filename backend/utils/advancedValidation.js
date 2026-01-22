@@ -22,9 +22,7 @@ const validateRegister = [
   body('name')
     .trim()
     .isLength({ min: 2, max: 100 })
-    .withMessage('Name must be between 2 and 100 characters')
-    .matches(/^[a-zA-Z\s'-]+$/)
-    .withMessage('Name can only contain letters, spaces, hyphens, and apostrophes'),
+    .withMessage('Name must be between 2 and 100 characters'),
   
   body('email')
     .trim()
@@ -33,10 +31,8 @@ const validateRegister = [
     .normalizeEmail(),
   
   body('password')
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters'),
   
   body('role')
     .optional()

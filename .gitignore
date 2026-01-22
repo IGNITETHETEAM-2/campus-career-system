@@ -35,3 +35,7 @@ coverage/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Seed files / scripts that might contain sensitive data
+backend/seed-specific-user.js
+backend/seed-notices.js

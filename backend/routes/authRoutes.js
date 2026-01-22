@@ -15,14 +15,11 @@ router.post('/register', validateRequest(schemas.registerUser), async (req, res)
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
+      return res.status(409).json({ message: 'Email already registered' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
-    const user = new User({ name, email, password: hashedPassword, role });
+    // Create user (password hashing is now handled by the model pre-save hook)
+    const user = new User({ name, email, password, role });
     await user.save();
 
     res.status(201).json({
@@ -31,7 +28,7 @@ router.post('/register', validateRequest(schemas.registerUser), async (req, res)
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    res.status(500).json({ message: 'Registration failed. Please try again later.' });
   }
 });
 
@@ -41,19 +38,17 @@ router.post('/login', validateRequest(schemas.loginUser), async (req, res) => {
     const userAgent = req.headers['user-agent'] || 'unknown';
     const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
 
-    // Find user
-    const user = await User.findOne({ email });
+    // Find user and include password for comparison
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      // Log failed attempt (optional, but good for security)
-      // await LoginHistory.create({ userId: null, ipAddress, userAgent, status: 'Failed' });
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Verify password using model method
+    const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       await LoginHistory.create({ userId: user._id, ipAddress, userAgent, status: 'Failed' });
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     // Generate token
@@ -71,9 +66,17 @@ router.post('/login', validateRequest(schemas.loginUser), async (req, res) => {
       status: 'Success'
     });
 
+    // Set HTTP-Only cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
     res.json({
       message: 'Login successful',
-      token,
+      token, // Still return token for backward compatibility if needed
       user: {
         id: user._id,
         name: user.name,
@@ -85,14 +88,34 @@ router.post('/login', validateRequest(schemas.loginUser), async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    res.status(500).json({ message: 'Login failed. Please try again later.' });
+  }
+});
+
+// Logout endpoint to clear cookie
+router.post('/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({ message: 'Logged out successfully' });
+});
+
+// Get current user profile
+const auth = require('../middleware/auth');
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching user profile' });
   }
 });
 
 // Verify token endpoint
 router.post('/verify', (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
     if (!token) {
       return res.status(401).json({ message: 'No token provided' });
     }

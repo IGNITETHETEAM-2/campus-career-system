@@ -35,7 +35,7 @@ function App() {
             const parsedUser = JSON.parse(userData);
             setUser(parsedUser);
             // Stay on current page implementation or default to dashboard
-            if (page === 'login') setPage('dashboard');
+            setPage(currentPage => currentPage === 'login' ? 'dashboard' : currentPage);
           } else {
             // Token invalid
             throw new Error('Invalid token');

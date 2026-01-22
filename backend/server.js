@@ -9,6 +9,7 @@ const xss = require('xss-clean');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const { validateEnv } = require('./utils/envValidator');
+const cookieParser = require('cookie-parser');
 
 // Load environment variables
 dotenv.config();
@@ -31,32 +32,31 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// Rate limiting - prevent abuse
+// Cookie parser middleware
+app.use(cookieParser());
+
+// Rate limiting - prevent abuse (DISABLED for easy testing)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 10000, // limit each IP to 10000 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 // Apply rate limiting to all requests
-app.use('/api/', limiter);
+// app.use('/api/', limiter);
 
-// Stricter rate limiting for auth endpoints
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs
-  message: 'Too many authentication attempts, please try again later.',
-  skipSuccessfulRequests: true,
-});
+// Stricter rate limiting for auth endpoints (DISABLED)
+const authLimiter = (req, res, next) => next();
+
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? false : '*'),
+  origin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? false : 'http://localhost:3000'),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
 // Body parsing middleware

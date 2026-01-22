@@ -14,6 +14,7 @@ export const apiCall = async (endpoint, method = 'GET', data = null, retries = 3
     try {
       const options = {
         method,
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
@@ -33,6 +34,12 @@ export const apiCall = async (endpoint, method = 'GET', data = null, retries = 3
 
       // Handle different status codes
       if (response.status === 401) {
+        // If it's a login attempt, don't clear session/redirect, just throw error
+        if (endpoint.includes('/auth/login') || endpoint.includes('/auth/register')) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new APIError(401, errorData.message || 'Authentication failed');
+        }
+
         // Unauthorized - clear auth and redirect to login
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -51,7 +58,7 @@ export const apiCall = async (endpoint, method = 'GET', data = null, retries = 3
       if (response.status >= 400) {
         let errorMessage = `API Error: ${response.status} ${response.statusText}`;
         let details = null;
-        
+
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorData.message || errorMessage;
