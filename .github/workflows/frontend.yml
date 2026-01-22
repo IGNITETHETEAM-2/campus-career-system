@@ -1,0 +1,83 @@
+name: Frontend Tests & Deploy
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - 'package.json'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - 'package.json'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install frontend dependencies
+        run: cd frontend && npm install
+      
+      - name: Lint code
+        run: cd frontend && npm run lint --if-present
+      
+      - name: Build application
+        run: cd frontend && npm run build
+        env:
+          GENERATE_SOURCEMAP: false
+      
+      - name: Run tests
+        run: cd frontend && npm test --if-present --coverage --watchAll=false
+      
+      - name: Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./frontend/coverage
+          fail_ci_if_error: false
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Run security audit
+        run: cd frontend && npm audit --audit-level=moderate
+        continue-on-error: true
+
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install and build
+        run: cd frontend && npm install && npm run build
+      
+      - name: Deploy to production
+        run: |
+          echo "Deploying frontend to production..."
+          # Add your deployment commands here
+          # Example: deploy to Netlify, Vercel, AWS S3, etc.

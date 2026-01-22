@@ -1,0 +1,21 @@
+{
+  "name": "campus-career-system",
+  "version": "2.0.0",
+  "description": "Complete Campus Career System - Upgraded",
+  "main": "start.js",
+  "scripts": {
+    "start": "node start.js",
+    "dev": "node start.js",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm start",
+    "stop": "taskkill /F /IM node.exe",
+    "setup-env": "node setup-env.js"
+  },
+  "dependencies": {
+    "child_process": "^1.0.2"
+  },
+  "keywords": ["campus", "career", "system"],
+  "author": "",
+  "license": "ISC"
+}
