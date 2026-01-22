@@ -17,23 +17,23 @@ function Notices() {
 
   const categories = ['All', 'Academic', 'Placement', 'Training', 'General'];
 
-  useEffect(() => {
-    const fetchNotices = async () => {
-      try {
-        setLoading(true);
-        const queryParam = activeCategory !== 'All' ? `?category=${activeCategory}` : '';
-        const data = await apiCall(`/notices${queryParam}`);
-        setNotices(Array.isArray(data) ? data : []);
-      } catch (error) {
-        setError('Failed to load notices');
-        setNotices([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotices();
+  const fetchNotices = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      const queryParam = activeCategory !== 'All' ? `?category=${activeCategory}` : '';
+      const data = await apiCall(`/notices${queryParam}`);
+      setNotices(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setError('Failed to load notices');
+      setNotices([]);
+    } finally {
+      setLoading(false);
+    }
   }, [activeCategory]);
+
+  useEffect(() => {
+    fetchNotices();
+  }, [fetchNotices]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

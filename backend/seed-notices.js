@@ -1,9 +1,16 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const path = require('path');
 const Notice = require('./models/Notice');
 
-// Load env vars
-dotenv.config();
+// Load env vars from root .env or backend .env
+const rootEnv = path.join(__dirname, '../.env');
+const backendEnv = path.join(__dirname, '.env');
+const localEnv = path.join(__dirname, '.env.development');
+
+dotenv.config({ path: rootEnv });
+if (!process.env.MONGO_URI) dotenv.config({ path: backendEnv });
+if (!process.env.MONGO_URI) dotenv.config({ path: localEnv });
 
 const sampleNotices = [
     {
