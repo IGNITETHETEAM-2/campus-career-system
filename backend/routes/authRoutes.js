@@ -4,12 +4,14 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { validateRequest, schemas } = require('../utils/validation');
 
+const LoginHistory = require('../models/LoginHistory');
+
 const router = express.Router();
 
 router.post('/register', validateRequest(schemas.registerUser), async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-    
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -18,12 +20,12 @@ router.post('/register', validateRequest(schemas.registerUser), async (req, res)
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     // Create user
     const user = new User({ name, email, password: hashedPassword, role });
     await user.save();
-    
-    res.status(201).json({ 
+
+    res.status(201).json({
       message: 'User registered successfully',
       user: { id: user._id, name: user.name, email: user.email, role: user.role }
     });
@@ -36,16 +38,21 @@ router.post('/register', validateRequest(schemas.registerUser), async (req, res)
 router.post('/login', validateRequest(schemas.loginUser), async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+
     // Find user
     const user = await User.findOne({ email });
     if (!user) {
+      // Log failed attempt (optional, but good for security)
+      // await LoginHistory.create({ userId: null, ipAddress, userAgent, status: 'Failed' });
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      await LoginHistory.create({ userId: user._id, ipAddress, userAgent, status: 'Failed' });
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -55,6 +62,14 @@ router.post('/login', validateRequest(schemas.loginUser), async (req, res) => {
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
+
+    // Save login history
+    await LoginHistory.create({
+      userId: user._id,
+      ipAddress,
+      userAgent,
+      status: 'Success'
+    });
 
     res.json({
       message: 'Login successful',

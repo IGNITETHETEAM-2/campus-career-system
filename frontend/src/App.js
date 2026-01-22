@@ -16,20 +16,37 @@ function App() {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    const initializeApp = () => {
+    const initializeApp = async () => {
       try {
         const token = localStorage.getItem('token');
         const userData = localStorage.getItem('user');
 
         if (token && userData) {
-          const parsedUser = JSON.parse(userData);
-          setUser(parsedUser);
-          setPage('dashboard');
+          // Verify token validity with backend
+          const response = await fetch('http://localhost:5000/api/auth/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const parsedUser = JSON.parse(userData);
+            setUser(parsedUser);
+            // Stay on current page implementation or default to dashboard
+            if (page === 'login') setPage('dashboard');
+          } else {
+            // Token invalid
+            throw new Error('Invalid token');
+          }
         }
       } catch (error) {
-        console.error('Initialization error:', error);
+        console.error('Session expired or invalid:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        setUser(null);
+        setPage('login');
       } finally {
         setIsInitialized(true);
       }
