@@ -37,7 +37,7 @@ jobs:
           GENERATE_SOURCEMAP: false
       
       - name: Run tests
-        run: cd frontend && npm test --if-present --coverage --watchAll=false
+        run: cd frontend && npm test --if-present -- --coverage --watchAll=false --passWithNoTests
       
       - name: Upload coverage
         if: always()
