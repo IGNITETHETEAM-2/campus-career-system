@@ -10,12 +10,17 @@
     "backend": "cd backend && npm run dev",
     "frontend": "cd frontend && npm start",
     "stop": "taskkill /F /IM node.exe",
-    "setup-env": "node setup-env.js"
+    "setup-env": "node setup-env.js",
+    "seed": "node backend/seed-notices.js"
   },
   "dependencies": {
     "child_process": "^1.0.2"
   },
-  "keywords": ["campus", "career", "system"],
+  "keywords": [
+    "campus",
+    "career",
+    "system"
+  ],
   "author": "",
   "license": "ISC"
 }
