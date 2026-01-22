@@ -7,6 +7,14 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ['student', 'recruiter', 'admin'], default: 'student' },
   phone: String,
   department: String,
+  skills: [String], // List of skills
+  currentSkills: [
+    {
+      skill: String,
+      proficiency: { type: String, enum: ['beginner', 'intermediate', 'advanced', 'expert'], default: 'beginner' }
+    }
+  ],
+  targetRole: String, // Career goal
   createdAt: { type: Date, default: Date.now }
 });
 

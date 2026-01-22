@@ -6,6 +6,8 @@ import Feedback from './pages/Feedback';
 import Events from './pages/Events';
 import Notices from './pages/Notices';
 import CareerAnalysis from './pages/CareerAnalysis';
+import SkillGapAnalyzer from './pages/SkillGapAnalyzer';
+import LearningRoadmap from './pages/LearningRoadmap';
 import './App.css';
 
 function App() {
@@ -75,6 +77,8 @@ function App() {
         {page === 'events' && <Events />}
         {page === 'notices' && <Notices />}
         {page === 'career-analysis' && <CareerAnalysis />}
+        {page === 'skill-gap' && <SkillGapAnalyzer />}
+        {page === 'roadmap' && <LearningRoadmap />}
       </main>
     </div>
   );

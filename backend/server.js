@@ -93,6 +93,7 @@ app.use('/api/feedback', require('./routes/feedbackRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
 app.use('/api/notices', require('./routes/noticeRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
+app.use('/api/skill-gap', require('./routes/skillGapRoutes'));
 
 // 404 handler
 app.use((req, res) => {
@@ -143,9 +144,9 @@ app.use((err, req, res, next) => {
   const statusCode = err.status || err.statusCode || 500;
   res.status(statusCode).json({
     error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { 
+    ...(process.env.NODE_ENV === 'development' && {
       stack: err.stack,
-      details: err.details 
+      details: err.details
     })
   });
 });
