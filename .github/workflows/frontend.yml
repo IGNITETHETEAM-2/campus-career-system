@@ -76,8 +76,17 @@ jobs:
       - name: Install and build
         run: cd frontend && npm install && npm run build
       
-      - name: Deploy to production
-        run: |
-          echo "Deploying frontend to production..."
-          # Add your deployment commands here
-          # Example: deploy to Netlify, Vercel, AWS S3, etc.
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: ./frontend
+
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: ./frontend
+
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: ./frontend

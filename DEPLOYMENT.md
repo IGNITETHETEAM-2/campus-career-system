@@ -41,8 +41,8 @@ VERCEL_PROJECT_ID = your-project-id
 
 ### Automated Deployment
 - Deploys to production on push to `main`
-- Backend: Deploy to Heroku, AWS, or DigitalOcean
-- Frontend: Deploy to Vercel or Netlify
+- Backend: Deployed to Vercel (using Serverless Functions)
+- Frontend: Deployed to Vercel
 
 ## Deployment Options
 

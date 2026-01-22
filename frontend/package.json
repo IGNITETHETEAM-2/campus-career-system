@@ -1,6 +1,7 @@
 {
   "name": "campus-career-frontend",
   "version": "2.0.0",
+  "author": "mohammedmuzhirtaha@gmail.com",
   "private": true,
   "dependencies": {
     "ajv": "^8.17.1",
@@ -38,5 +39,10 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1"
   }
 }

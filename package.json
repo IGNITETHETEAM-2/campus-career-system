@@ -11,7 +11,8 @@
     "frontend": "cd frontend && npm start",
     "stop": "taskkill /F /IM node.exe",
     "setup-env": "node setup-env.js",
-    "seed": "node backend/seed-notices.js"
+    "seed": "node backend/seed-notices.js",
+    "test-all": "cd backend && npm test && cd ../frontend && npm test -- --watchAll=false"
   },
   "dependencies": {
     "child_process": "^1.0.2"
@@ -21,6 +22,6 @@
     "career",
     "system"
   ],
-  "author": "",
+  "author": "mohammedmuzhirtaha@gmail.com",
   "license": "ISC"
 }

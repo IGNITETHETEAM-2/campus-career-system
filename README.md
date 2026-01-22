@@ -225,7 +225,7 @@ cd frontend
 npm start
 
 # Run tests
-npm test
+npm run test-all  # Run tests for both backend and frontend
 
 # Lint code
 npm run lint
@@ -248,7 +248,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📧 Support
 
-For support, email your-email@example.com or create an issue in the repository.
+For support, email mohammedmuzhirtaha@gmail.com or create an issue in the repository.
 
 ---
 
