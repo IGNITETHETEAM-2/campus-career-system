@@ -141,8 +141,10 @@ jobs:
       
       - name: Deployment Status
         if: success()
-        run: echo "✅ Deployed to https://${{ secrets.HEROKU_APP_NAME }}.herokuapp.com"
+        run: |
+          echo "Deployment succeeded to https://${{ secrets.HEROKU_APP_NAME }}.herokuapp.com"
       
       - name: Deployment Failed
         if: failure()
-        run: echo "❌ Deployment failed. Check Heroku logs: heroku logs --app ${{ secrets.HEROKU_APP_NAME }}"
+        run: |
+          echo "Deployment failed. Check Heroku logs: heroku logs --app ${{ secrets.HEROKU_APP_NAME }}"
