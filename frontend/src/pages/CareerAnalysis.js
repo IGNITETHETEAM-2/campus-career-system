@@ -49,18 +49,36 @@ function CareerAnalysis() {
     e.preventDefault();
     try {
       setLoading(true);
-      const resumeData = {
-        skills: formData.skills.split(',').map(s => s.trim()),
-        experience: JSON.parse(formData.experience),
-        education: JSON.parse(formData.education),
-        projects: JSON.parse(formData.projects),
-        certifications: formData.certifications.split(',').map(c => c.trim())
+      setError(null);
+
+      // Helper to safely parse JSON strings from form
+      const safeParse = (str, fieldName) => {
+        try {
+          return JSON.parse(str);
+        } catch (e) {
+          throw new Error(`Invalid JSON format in ${fieldName}. Please check your input.`);
+        }
       };
+
+      const resumeData = {
+        skills: formData.skills ? formData.skills.split(',').map(s => s.trim()).filter(s => s) : [],
+        experience: safeParse(formData.experience || '[]', 'Experience'),
+        education: safeParse(formData.education || '[]', 'Education'),
+        projects: safeParse(formData.projects || '[]', 'Projects'),
+        certifications: formData.certifications ? formData.certifications.split(',').map(c => c.trim()).filter(c => c) : []
+      };
+
+      // Basic validation
+      if (resumeData.skills.length === 0) {
+        throw new Error('Please add at least one skill');
+      }
+
       const data = await apiCall('/ai/resume', 'POST', resumeData);
       setResume(data);
       setShowResumeForm(false);
+      alert('Resume saved successfully!');
     } catch (error) {
-      setError('Failed to save resume');
+      setError(error.message || 'Failed to save resume');
     } finally {
       setLoading(false);
     }
@@ -73,11 +91,12 @@ function CareerAnalysis() {
     }
     try {
       setLoading(true);
+      setError(null);
       const data = await apiCall('/ai/analyze', 'POST', { jobPostingId: jobId });
       setAnalysis(data);
       setRoadmap(null);
     } catch (error) {
-      setError('Failed to analyze resume');
+      setError(error.message || 'Failed to analyze resume');
     } finally {
       setLoading(false);
     }
@@ -90,10 +109,11 @@ function CareerAnalysis() {
     }
     try {
       setLoading(true);
+      setError(null);
       const data = await apiCall('/ai/roadmap', 'POST', { jobPostingId: jobId });
       setRoadmap(data);
     } catch (error) {
-      setError('Failed to generate roadmap');
+      setError(error.message || 'Failed to generate roadmap');
     } finally {
       setLoading(false);
     }
@@ -195,7 +215,7 @@ function CareerAnalysis() {
           <div className="analysis-card">
             <h4>Match Score: {analysis.matchPercentage}%</h4>
             <p>{analysis.summary}</p>
-            
+
             <h5>✅ Matched Skills ({analysis.matchedSkills.length})</h5>
             <p>{analysis.matchedSkills.join(', ') || 'None'}</p>
 

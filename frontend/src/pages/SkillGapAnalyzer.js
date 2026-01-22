@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { apiCall } from '../api';
 import '../App.css';
 
 const SkillGapAnalyzer = () => {
@@ -30,22 +30,15 @@ const SkillGapAnalyzer = () => {
         setError('');
 
         try {
-            const token = localStorage.getItem('token');
-            const skillsArray = requiredSkills.split(',').map(s => s.trim()).filter(s => s);
+            const data = await apiCall('/skill-gap/analyze', 'POST', {
+                targetRole,
+                currentSkills: currentSkills.filter(s => s.skill),
+                requiredSkills: requiredSkills.split(',').map(s => s.trim()).filter(s => s)
+            });
 
-            const response = await axios.post(
-                'http://localhost:5000/api/skill-gap/analyze',
-                {
-                    targetRole,
-                    currentSkills: currentSkills.filter(s => s.skill),
-                    requiredSkills: skillsArray
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            setAnalysis(response.data.analysis);
+            setAnalysis(data.analysis);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to analyze skill gap');
+            setError(err.message || 'Failed to analyze skill gap');
         } finally {
             setLoading(false);
         }

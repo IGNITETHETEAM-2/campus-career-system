@@ -17,14 +17,10 @@ export const apiCall = async (endpoint, method = 'GET', data = null, retries = 3
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
         }
       };
-
-      const token = localStorage.getItem('token');
-      if (token) {
-        options.headers.Authorization = `Bearer ${token}`;
-      }
 
       if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
         options.body = JSON.stringify(data);
@@ -40,10 +36,9 @@ export const apiCall = async (endpoint, method = 'GET', data = null, retries = 3
           throw new APIError(401, errorData.message || 'Authentication failed');
         }
 
-        // Unauthorized - clear auth and redirect to login
+        // Unauthorized - clear auth (but don't redirect to root to avoid loops)
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/';
         throw new APIError(401, 'Session expired. Please login again.');
       }
 

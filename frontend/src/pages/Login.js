@@ -26,8 +26,8 @@ function Login({ setUser }) {
       const response = await apiCall(endpoint, 'POST', payload);
 
       if (isLogin) {
-        if (response.token && response.user) {
-          setUser(response.user, response.token);
+        if (response.user) {
+          setUser(response.user);
         } else {
           setError('Invalid response from server');
         }

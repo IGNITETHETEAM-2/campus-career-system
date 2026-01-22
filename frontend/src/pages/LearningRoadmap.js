@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiCall } from '../api';
 import '../App.css';
 
 const LearningRoadmap = () => {
@@ -11,13 +11,10 @@ const LearningRoadmap = () => {
     useEffect(() => {
         const fetchRoadmaps = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const response = await axios.get('http://localhost:5000/api/ai/roadmaps', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setRoadmaps(response.data);
-                if (response.data.length > 0) {
-                    selectRoadmap(response.data[0]);
+                const data = await apiCall('/ai/roadmaps');
+                setRoadmaps(data);
+                if (data.length > 0) {
+                    selectRoadmap(data[0]);
                 }
             } catch (error) {
                 console.error('Error fetching roadmaps:', error);
@@ -32,12 +29,8 @@ const LearningRoadmap = () => {
     const selectRoadmap = async (roadmap) => {
         setSelectedRoadmap(roadmap);
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get(
-                `http://localhost:5000/api/ai/roadmap-progress/${roadmap._id}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            setProgress(response.data.progress);
+            const data = await apiCall(`/ai/roadmap-progress/${roadmap._id}`);
+            setProgress(data.progress || data); // Handle both wrapped and unwrapped response
         } catch (error) {
             // No progress yet
             setProgress(null);
@@ -46,15 +39,10 @@ const LearningRoadmap = () => {
 
     const markStepComplete = async (phase, stepIndex) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.post(
-                'http://localhost:5000/api/ai/roadmap-progress',
-                {
-                    roadmapId: selectedRoadmap._id,
-                    completedStep: { phase, stepIndex, completedAt: new Date() }
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await apiCall('/ai/roadmap-progress', 'POST', {
+                roadmapId: selectedRoadmap._id,
+                completedStep: { phase, stepIndex, completedAt: new Date() }
+            });
             selectRoadmap(selectedRoadmap); // Refresh progress
         } catch (error) {
             console.error('Error updating progress:', error);

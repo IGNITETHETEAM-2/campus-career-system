@@ -8,6 +8,7 @@ import Notices from './pages/Notices';
 import CareerAnalysis from './pages/CareerAnalysis';
 import SkillGapAnalyzer from './pages/SkillGapAnalyzer';
 import LearningRoadmap from './pages/LearningRoadmap';
+import { apiCall } from './api';
 import './App.css';
 
 function App() {
@@ -18,33 +19,14 @@ function App() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('user');
-
-        if (token && userData) {
-          // Verify token validity with backend
-          const response = await fetch('http://localhost:5000/api/auth/verify', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            }
-          });
-
-          if (response.ok) {
-            const parsedUser = JSON.parse(userData);
-            setUser(parsedUser);
-            // Stay on current page implementation or default to dashboard
-            setPage(currentPage => currentPage === 'login' ? 'dashboard' : currentPage);
-          } else {
-            // Token invalid
-            throw new Error('Invalid token');
-          }
+        // Fetch current user from /me endpoint (uses cookie)
+        const userData = await apiCall('/auth/me');
+        if (userData) {
+          setUser(userData);
+          setPage(currentPage => currentPage === 'login' ? 'dashboard' : currentPage);
         }
       } catch (error) {
-        console.error('Session expired or invalid:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        console.error('Session initialization failed:', error.message);
         setUser(null);
         setPage('login');
       } finally {
@@ -55,25 +37,21 @@ function App() {
     initializeApp();
   }, []);
 
-  const handleLogin = (userData, token) => {
-    try {
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('token', token);
-      setPage('dashboard');
-    } catch (error) {
-      console.error('Login error:', error);
-    }
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setPage('dashboard');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
+      await apiCall('/auth/logout', 'POST');
       setUser(null);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
       setPage('login');
     } catch (error) {
       console.error('Logout error:', error);
+      // Fallback: clear local state anyway
+      setUser(null);
+      setPage('login');
     }
   };
 
