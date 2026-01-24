@@ -1,8 +1,8 @@
-# Database Setup Guide - Campus Career System
+# Database Setup Guide - Campus Management System
 
 ## 🗄️ Database Connection Setup
 
-This guide will help you set up MongoDB for the Campus Career System.
+This guide will help you set up MongoDB for the Campus Management System.
 
 ---
 

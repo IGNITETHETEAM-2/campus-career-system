@@ -6,7 +6,7 @@
 ```bash
 git init
 git add .
-git commit -m "Initial commit: Campus Career System v1.0.0"
+git commit -m "Initial commit: Campus Management System v1.0.0"
 git branch -M main
 git remote add origin https://github.com/YOUR_USERNAME/campus-career-system.git
 git push -u origin main
@@ -19,17 +19,18 @@ git push -u origin main
 4. Make it **Public** or **Private** as needed
 5. Click "Create repository"
 
-### 3. GitHub Secrets Configuration
-Add these secrets to your repository (`Settings > Secrets > Actions`):
+### 3. GitHub Secrets Configuration (MANDATORY)
+Add these secrets to your repository (`Settings > Secrets and variables > Actions`):
 
-```
-MONGO_URI = mongodb+srv://username:password@cluster.mongodb.net/campus-career
-JWT_SECRET = your-production-jwt-secret-min-32-chars
-HEROKU_API_KEY = your-heroku-api-key
-HEROKU_APP_NAME = your-app-name
-VERCEL_TOKEN = your-vercel-token
-VERCEL_PROJECT_ID = your-project-id
-```
+| Secret Name | Description |
+| ----------- | ----------- |
+| `VERCEL_TOKEN` | Your Vercel Personal Access Token |
+| `VERCEL_ORG_ID` | Your Vercel Team/Org ID |
+| `VERCEL_PROJECT_ID` | (Optional, but recommended) |
+| `MONGO_URI` | Your production Atlas connection string |
+| `JWT_SECRET` | A secure random string for signing tokens |
+
+**Warning**: If `VERCEL_TOKEN` is missing, the deployment step will fail.
 
 ## CI/CD Pipeline
 

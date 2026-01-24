@@ -1,4 +1,4 @@
-# Campus Career System - AI Coding Agent Instructions
+# Campus Management System - AI Coding Agent Instructions
 
 ## Project Architecture
 
@@ -132,4 +132,4 @@ npm run stop                 # Windows: kill all node processes
 
 ---
 
-Last Updated: January 2026 | Project: Campus Career System v1.0.0
+Last Updated: January 2026 | Project: Campus Management System v1.0.0

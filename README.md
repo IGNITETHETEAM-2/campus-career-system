@@ -1,6 +1,6 @@
 # Campus Management System v3.0.0
 
-A comprehensive full-stack application connecting students with career opportunities, featuring AI-powered skill gap analysis, personalized learning roadmaps, and intelligent career guidance.
+A comprehensive full-stack application connecting students with career opportunities, featuring AI-powered skill gap analysis, personalized learning roadmaps, and intelligent career guidance for the **Campus Management System**.
 
 ## ✨ Features
 

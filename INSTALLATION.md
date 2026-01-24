@@ -1,6 +1,6 @@
 # Installation & Configuration Guide
 
-Complete step-by-step installation for Campus Career System.
+Complete step-by-step installation for Campus Management System.
 
 ## Prerequisites
 
@@ -346,4 +346,4 @@ After installation, verify:
 
 ---
 
-**Installation Complete!** Your Campus Career System is ready to use. 🎉
+**Installation Complete!** Your Campus Management System is ready to use. 🎉

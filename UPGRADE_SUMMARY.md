@@ -1,4 +1,4 @@
-# 🚀 Project Upgrade Summary - Campus Career System v2.0.0
+# 🚀 Project Upgrade Summary - Campus Management System v2.0.0
 
 ## ✅ Upgrade Completed
 
