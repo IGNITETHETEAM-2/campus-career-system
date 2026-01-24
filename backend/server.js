@@ -96,15 +96,21 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Database Connection
-connectDB();
+(async () => {
+  await connectDB();
+})();
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   const mongoose = require('mongoose');
+  const uri = process.env.MONGO_URI || process.env.MONGODB_URI || 'not set';
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+    uri_found: uri !== 'not set',
+    uri_prefix: uri.substring(0, 30) + '...',
+    db_error: mongoose.connection._error ? mongoose.connection._error.message : null,
     node_env: process.env.NODE_ENV
   });
 });
