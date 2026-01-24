@@ -1,4 +1,18 @@
 // Environment variable validation
+// Vercel deployment environment variables:
+// Backend runtime (serverless):
+// - MONGO_URI: MongoDB connection string
+// - JWT_SECRET: JWT signing key
+// - NODE_ENV: 'production' on Vercel
+// - CORS_ORIGIN: Allowed frontend origin (e.g., https://your-frontend.vercel.app)
+// - PORT: ignored in serverless, used locally
+// CI/CD (GitHub secrets used by workflows):
+// - VERCEL_TOKEN
+// - VERCEL_ORG_ID
+// - VERCEL_PROJECT_ID_BACKEND
+// - VERCEL_PROJECT_ID_FRONTEND
+// Frontend build:
+// - REACT_APP_API_URL: e.g., https://your-backend.vercel.app/api (set via FRONTEND_API_URL secret)
 const requiredEnvVars = {
   development: ['MONGO_URI'],
   production: ['MONGO_URI', 'JWT_SECRET', 'PORT'],

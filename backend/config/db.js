@@ -69,8 +69,9 @@ const connectDB = async () => {
       console.error('4. For local MongoDB: Ensure MongoDB service is started');
       console.error('\n⚠️  Server will continue but database operations will fail until connected.\n');
 
-      // Don't exit - let server start without DB (for development)
-      if (process.env.NODE_ENV === 'production') {
+      // Don't exit in serverless environments (e.g., Vercel)
+      const isServerless = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+      if (process.env.NODE_ENV === 'production' && !isServerless) {
         process.exit(1);
       }
       return false;

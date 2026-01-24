@@ -1,3 +1,6 @@
+// In Vercel builds, set REACT_APP_API_URL to your backend API base URL.
+// Recommended source: GitHub secret FRONTEND_API_URL injected into the build.
+// Example: https://your-backend.vercel.app/api
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 if (process.env.NODE_ENV === 'production' && !process.env.REACT_APP_API_URL) {

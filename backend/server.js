@@ -55,8 +55,7 @@ const authLimiter = (req, res, next) => next();
 const allowedOrigins = [
   process.env.CORS_ORIGIN,
   'http://localhost:3000',
-  'http://localhost:5173', // Vite default
-  'https://frontend-nine-wheat-76.vercel.app' // Updated Vercel URL
+  'http://localhost:5173'
 ].filter(Boolean);
 
 app.use(cors({
@@ -64,7 +63,11 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    const isDev = process.env.NODE_ENV === 'development';
+    const isAllowed = allowedOrigins.includes(origin);
+    const isVercel = /\.vercel\.app$/.test(new URL(origin).hostname);
+
+    if (isAllowed || isDev || isVercel) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

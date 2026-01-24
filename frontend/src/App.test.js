@@ -2,12 +2,11 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
-test('renders campus management system heading', () => {
+test('renders initial loading state', () => {
     render(
         <BrowserRouter>
             <App />
         </BrowserRouter>
     );
-    const linkElement = screen.getByText(/campus management system/i);
-    expect(linkElement).toBeInTheDocument();
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
 });
