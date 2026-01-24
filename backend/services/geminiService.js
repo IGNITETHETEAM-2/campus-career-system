@@ -57,7 +57,7 @@ Return ONLY valid JSON, no markdown formatting.`;
      */
     async generateLearningRoadmap(skillGapAnalysis, targetRole, currentLevel = 'Fresher') {
         if (!this.genAI) {
-            return this.fallbackRoadmapGeneration(skillGapAnalysis, targetRole);
+            return this.fallbackRoadmapGeneration(skillGapAnalysis);
         }
 
         try {
@@ -93,7 +93,7 @@ Return ONLY valid JSON, no markdown formatting.`;
             return roadmap;
         } catch (error) {
             console.error('Gemini AI Error:', error.message);
-            return this.fallbackRoadmapGeneration(skillGapAnalysis, targetRole);
+            return this.fallbackRoadmapGeneration(skillGapAnalysis);
         }
     }
 
@@ -167,7 +167,7 @@ Return ONLY valid JSON, no markdown formatting.`;
         };
     }
 
-    fallbackRoadmapGeneration(skillGapAnalysis, targetRole) {
+    fallbackRoadmapGeneration(skillGapAnalysis) {
         const missingCount = skillGapAnalysis.missingSkills.length;
         return {
             totalDuration: `${Math.max(12, missingCount * 3)}-${Math.max(16, missingCount * 4)} weeks`,

@@ -6,7 +6,6 @@ const morgan = require('morgan');
 const compression = require('compression');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
-const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const { validateEnv } = require('./utils/envValidator');
 const cookieParser = require('cookie-parser');
@@ -36,13 +35,14 @@ app.use(helmet({
 app.use(cookieParser());
 
 // Rate limiting - prevent abuse (DISABLED for easy testing)
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10000, // limit each IP to 10000 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// Rate limiting - prevent abuse (DISABLED for easy testing)
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 10000, // limit each IP to 10000 requests per windowMs
+//   message: 'Too many requests from this IP, please try again later.',
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
 // Apply rate limiting to all requests
 // app.use('/api/', limiter);
@@ -52,8 +52,24 @@ const authLimiter = (req, res, next) => next();
 
 
 // CORS configuration
+const allowedOrigins = [
+  process.env.CORS_ORIGIN,
+  'http://localhost:3000',
+  'http://localhost:5173', // Vite default
+  'https://campus-career-system.vercel.app' // Example Vercel URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? false : 'http://localhost:3000'),
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
@@ -102,6 +118,7 @@ app.use((req, res) => {
 
 // Global error handler - improved error handling
 app.use((err, req, res, next) => {
+  if (next) { /* Keep next for middleware signature */ }
   // Log error details
   console.error('Error:', {
     message: err.message,
@@ -151,9 +168,11 @@ app.use((err, req, res, next) => {
   });
 });
 
+let server;
+
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
+  server = app.listen(PORT, () => {
     console.log(`\n${'='.repeat(50)}`);
     console.log(`✓ Server running on port ${PORT}`);
     console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -164,10 +183,14 @@ if (require.main === module) {
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received. Shutting down gracefully...');
-  server.close(() => {
-    console.log('Server closed');
+  if (server) {
+    server.close(() => {
+      console.log('Server closed');
+      process.exit(0);
+    });
+  } else {
     process.exit(0);
-  });
+  }
 });
 
 module.exports = app;

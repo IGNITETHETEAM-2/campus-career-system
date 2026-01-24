@@ -27,6 +27,9 @@ function Login({ setUser }) {
 
       if (isLogin) {
         if (response.user) {
+          if (response.token) {
+            localStorage.setItem('token', response.token);
+          }
           setUser(response.user);
         } else {
           setError('Invalid response from server');

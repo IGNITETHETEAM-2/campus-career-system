@@ -4,7 +4,7 @@ class AIService {
     const matchedSkills = this.findMatchedSkills(resume.skills, jobPosting.requiredSkills);
     const missingSkills = this.findMissingSkills(resume.skills, jobPosting.requiredSkills);
     const strengthSkills = this.findExtraSkills(resume.skills, jobPosting.requiredSkills);
-    
+
     const matchPercentage = this.calculateMatchPercentage(
       matchedSkills.length,
       jobPosting.requiredSkills.length
@@ -40,8 +40,8 @@ class AIService {
   isSimilarSkill(skill1, skill2) {
     const normalize = (s) => s.toLowerCase().trim();
     return normalize(skill1) === normalize(skill2) ||
-           normalize(skill1).includes(normalize(skill2)) ||
-           normalize(skill2).includes(normalize(skill1));
+      normalize(skill1).includes(normalize(skill2)) ||
+      normalize(skill2).includes(normalize(skill1));
   }
 
   calculateMatchPercentage(matched, required) {
@@ -58,7 +58,7 @@ class AIService {
 
   // Generate career roadmap
   generateRoadmap(resume, jobPosting, analysis) {
-    const phases = this.createRoadmapPhases(analysis.missingSkills, resume.skills);
+    const phases = this.createRoadmapPhases(analysis.missingSkills);
     const recommendations = this.createRecommendations(analysis.missingSkills);
 
     return {
@@ -72,7 +72,7 @@ class AIService {
     };
   }
 
-  createRoadmapPhases(missingSkills, resumeSkills) {
+  createRoadmapPhases(missingSkills) {
     const phases = [];
 
     // Phase 1: Foundation

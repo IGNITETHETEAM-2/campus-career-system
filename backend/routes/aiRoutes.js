@@ -41,7 +41,7 @@ router.post('/analyze', auth, async (req, res) => {
 // Generate career roadmap with AI
 router.post('/roadmap', auth, async (req, res) => {
   try {
-    const { jobPostingId, jobData, skillGapAnalysisId } = req.body;
+    const { jobPostingId, jobData } = req.body;
 
     const resume = await Resume.findOne({ userId: req.userId });
     if (!resume) {

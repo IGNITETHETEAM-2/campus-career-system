@@ -1,5 +1,9 @@
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
+if (process.env.NODE_ENV === 'production' && !process.env.REACT_APP_API_URL) {
+  console.warn('REACT_APP_API_URL is not defined in production environment!');
+}
+
 class APIError extends Error {
   constructor(status, message, details = null) {
     super(message);

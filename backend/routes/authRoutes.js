@@ -1,6 +1,5 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { validateRequest, schemas } = require('../utils/validation');
 
@@ -108,6 +107,7 @@ router.get('/me', auth, async (req, res) => {
     }
     res.json(user);
   } catch (error) {
+    console.error('Profile fetch error:', error);
     res.status(500).json({ message: 'Error fetching user profile' });
   }
 });
@@ -123,6 +123,7 @@ router.post('/verify', (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
     res.json({ valid: true, user: decoded });
   } catch (error) {
+    console.error('Token verification error:', error);
     res.status(401).json({ valid: false, message: 'Invalid token' });
   }
 });
