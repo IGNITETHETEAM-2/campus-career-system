@@ -1,7 +1,7 @@
 {
-  "name": "campus-career-system",
+  "name": "campus-management-system",
   "version": "2.0.0",
-  "description": "Complete Campus Career System - Upgraded",
+  "description": "Complete Campus Management System",
   "main": "start.js",
   "scripts": {
     "start": "node start.js",

@@ -65,11 +65,11 @@ router.post('/login', validateRequest(schemas.loginUser), async (req, res) => {
       status: 'Success'
     });
 
-    // Set HTTP-Only cookie
+    // Set HTTP-Only cookie with production-ready settings
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true, // Always true for cross-site cookies
+      sameSite: 'none', // Needed for cross-site cookie sharing between frontend/backend subdomains
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 

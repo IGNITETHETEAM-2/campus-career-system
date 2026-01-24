@@ -1,8 +1,8 @@
 {
-  "name": "campus-career-backend",
+  "name": "campus-management-backend",
   "version": "2.0.0",
   "author": "mohammedmuzhirtaha@gmail.com",
-  "description": "Campus Career System Backend - Upgraded",
+  "description": "Campus Management System Backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

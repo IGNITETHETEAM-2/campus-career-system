@@ -3,7 +3,7 @@ import React from 'react';
 function Navbar({ user, setPage, setUser }) {
   return (
     <nav className="navbar">
-      <h1>🎓 Campus Career System</h1>
+      <h1>🏢 Campus Management System</h1>
       <ul>
         <li><button onClick={() => setPage('dashboard')}>Dashboard</button></li>
         <li><button onClick={() => setPage('skill-gap')}>🎯 Skill Gap</button></li>

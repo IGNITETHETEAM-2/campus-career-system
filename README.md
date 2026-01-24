@@ -1,4 +1,4 @@
-# Campus Career System v3.0.0
+# Campus Management System v3.0.0
 
 A comprehensive full-stack application connecting students with career opportunities, featuring AI-powered skill gap analysis, personalized learning roadmaps, and intelligent career guidance.
 
