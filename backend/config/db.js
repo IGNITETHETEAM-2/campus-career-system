@@ -6,11 +6,11 @@ const connectDB = async () => {
 
   const connect = async () => {
     try {
-      const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/campus-career';
-      
+      const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/campus-career';
+
       console.log(`🔄 Attempting to connect to MongoDB...`);
       console.log(`📍 Connection string: ${mongoUri.replace(/\/\/.*@/, '//***:***@')}`); // Hide credentials
-      
+
       await mongoose.connect(mongoUri, {
         serverSelectionTimeoutMS: 10000, // Increased timeout
         socketTimeoutMS: 45000,
@@ -23,7 +23,7 @@ const connectDB = async () => {
       console.log('✓ MongoDB connected successfully');
       console.log(`✓ Database: ${mongoose.connection.name}`);
       console.log(`✓ Host: ${mongoose.connection.host}:${mongoose.connection.port}`);
-      
+
       // Set up connection event handlers
       mongoose.connection.on('disconnected', () => {
         console.warn('⚠ MongoDB disconnected. Attempting to reconnect...');
@@ -42,7 +42,7 @@ const connectDB = async () => {
       retries++;
       console.error(`\n✗ MongoDB connection attempt ${retries}/${maxRetries} failed`);
       console.error(`   Error: ${error.message}`);
-      
+
       // Provide helpful error messages
       if (error.message.includes('ECONNREFUSED')) {
         console.error('   💡 Tip: Make sure MongoDB is running');
@@ -68,7 +68,7 @@ const connectDB = async () => {
       console.error('3. For MongoDB Atlas: Check network access and IP whitelist');
       console.error('4. For local MongoDB: Ensure MongoDB service is started');
       console.error('\n⚠️  Server will continue but database operations will fail until connected.\n');
-      
+
       // Don't exit - let server start without DB (for development)
       if (process.env.NODE_ENV === 'production') {
         process.exit(1);

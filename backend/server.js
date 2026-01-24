@@ -100,7 +100,13 @@ connectDB();
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  const mongoose = require('mongoose');
+  res.json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+    node_env: process.env.NODE_ENV
+  });
 });
 
 // Routes
