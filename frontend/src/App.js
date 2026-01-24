@@ -67,13 +67,13 @@ function App() {
     <div className="app">
       <Navbar user={user} setPage={setPage} setUser={handleLogout} />
       <main className="main-content">
-        {page === 'dashboard' && <Dashboard />}
-        {page === 'feedback' && <Feedback />}
-        {page === 'events' && <Events />}
-        {page === 'notices' && <Notices />}
-        {page === 'career-analysis' && <CareerAnalysis />}
-        {page === 'skill-gap' && <SkillGapAnalyzer />}
-        {page === 'roadmap' && <LearningRoadmap />}
+        {page === 'dashboard' && <Dashboard setPage={setPage} />}
+        {page === 'feedback' && <Feedback setPage={setPage} />}
+        {page === 'events' && <Events setPage={setPage} />}
+        {page === 'notices' && <Notices setPage={setPage} />}
+        {page === 'career-analysis' && <CareerAnalysis setPage={setPage} />}
+        {page === 'skill-gap' && <SkillGapAnalyzer setPage={setPage} />}
+        {page === 'roadmap' && <LearningRoadmap setPage={setPage} />}
       </main>
     </div>
   );

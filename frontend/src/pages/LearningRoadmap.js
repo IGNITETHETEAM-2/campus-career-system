@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiCall } from '../api';
 import '../App.css';
 
-const LearningRoadmap = () => {
+const LearningRoadmap = ({ setPage }) => {
     const [roadmaps, setRoadmaps] = useState([]);
     const [selectedRoadmap, setSelectedRoadmap] = useState(null);
     const [progress, setProgress] = useState(null);
@@ -57,7 +57,7 @@ const LearningRoadmap = () => {
                 <h2>🗺️ Learning Roadmap</h2>
                 <div className="empty-state">
                     <p>No roadmaps found. Generate one from the Skill Gap Analyzer!</p>
-                    <button onClick={() => window.location.href = '/skill-gap'} className="btn-primary">
+                    <button onClick={() => setPage('skill-gap')} className="btn-primary">
                         Go to Skill Gap Analyzer
                     </button>
                 </div>
