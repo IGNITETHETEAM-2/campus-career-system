@@ -56,7 +56,7 @@ const allowedOrigins = [
   process.env.CORS_ORIGIN,
   'http://localhost:3000',
   'http://localhost:5173', // Vite default
-  'https://campus-career-system.vercel.app' // Example Vercel URL
+  'https://frontend-nine-wheat-76.vercel.app' // Updated Vercel URL
 ].filter(Boolean);
 
 app.use(cors({
