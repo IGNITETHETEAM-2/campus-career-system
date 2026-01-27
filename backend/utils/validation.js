@@ -14,10 +14,9 @@ const validators = {
     return emailRegex.test(email);
   },
 
-  // Password validation (min 6 chars, at least one uppercase, one number)
+  // Password validation (min 6 chars)
   isValidPassword: (password) => {
-    if (password.length < 6) return false;
-    return /[A-Z]/.test(password) && /\d/.test(password);
+    return password && password.length >= 6;
   },
 
   // Name validation
@@ -60,7 +59,7 @@ const schemas = {
   registerUser: {
     name: { required: true, validator: validators.isValidName, message: 'Name must be 2-100 characters' },
     email: { required: true, validator: validators.isValidEmail, message: 'Invalid email format' },
-    password: { required: true, validator: validators.isValidPassword, message: 'Password must be 6+ chars with uppercase & number' },
+    password: { required: true, validator: validators.isValidPassword, message: 'Password must be at least 6 characters' },
     role: { required: true, validator: (v) => ['student', 'recruiter', 'admin'].includes(v), message: 'Invalid role' }
   },
 

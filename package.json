@@ -15,7 +15,8 @@
     "test-all": "cd backend && npm test && cd ../frontend && npm test -- --watchAll=false"
   },
   "dependencies": {
-    "child_process": "^1.0.2"
+    "child_process": "^1.0.2",
+    "node-fetch": "^3.3.2"
   },
   "keywords": [
     "campus",
