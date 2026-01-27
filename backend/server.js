@@ -53,9 +53,12 @@ const authLimiter = (req, res, next) => next();
 
 // CORS configuration
 const allowedOrigins = [
-  process.env.CORS_ORIGIN,
   'http://localhost:3000',
-  'http://localhost:5173'
+  'http://localhost:5000',
+  'http://localhost:5173',
+  'https://campus-career-system-c2tx.vercel.app',
+  'https://campus-career-system-c2tx-emxta2e86-vercel.app',
+  process.env.CORS_ORIGIN
 ].filter(Boolean);
 
 app.use(cors({

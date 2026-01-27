@@ -1,11 +1,24 @@
-import React, { useState } from 'react';
-import { apiCall } from '../api';
+import React, { useState, useEffect } from 'react';
+import { apiCall, checkBackendHealth, getErrorMessage } from '../api';
 
 function Login({ setUser }) {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [backendStatus, setBackendStatus] = useState('checking');
   const [formData, setFormData] = useState({ email: '', password: '', name: '', role: 'student' });
+
+  useEffect(() => {
+    // Check backend connectivity on mount
+    const checkBackend = async () => {
+      const isHealthy = await checkBackendHealth();
+      setBackendStatus(isHealthy ? 'connected' : 'disconnected');
+      if (!isHealthy) {
+        setError('Cannot connect to backend server. Please ensure the backend is running on http://localhost:5000');
+      }
+    };
+    checkBackend();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,7 +54,7 @@ function Login({ setUser }) {
         alert('Registration successful! Please login.');
       }
     } catch (error) {
-      setError(error.message || 'An error occurred. Please try again.');
+      setError(getErrorMessage(error));
       console.error('Auth error:', error);
     } finally {
       setLoading(false);
@@ -52,6 +65,20 @@ function Login({ setUser }) {
     <div className="login-page">
       <form onSubmit={handleSubmit}>
         <h2>{isLogin ? 'Login' : 'Register'}</h2>
+
+        {/* Backend Status Indicator */}
+        <div className={`backend-status ${backendStatus}`} style={{
+          padding: '8px',
+          marginBottom: '10px',
+          borderRadius: '4px',
+          fontSize: '12px',
+          backgroundColor: backendStatus === 'connected' ? '#d4edda' : backendStatus === 'disconnected' ? '#f8d7da' : '#fff3cd',
+          color: backendStatus === 'connected' ? '#155724' : backendStatus === 'disconnected' ? '#721c24' : '#856404',
+          border: `1px solid ${backendStatus === 'connected' ? '#c3e6cb' : backendStatus === 'disconnected' ? '#f5c6cb' : '#ffeeba'}`
+        }}>
+          Backend: {backendStatus === 'connected' ? '✓ Connected' : backendStatus === 'disconnected' ? '✗ Disconnected' : '⟳ Checking...'}
+        </div>
+
         {error && <div className="error">{error}</div>}
 
         {!isLogin && (

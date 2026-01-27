@@ -1,0 +1,26 @@
+# Backend files
+backend/
+
+# Documentation
+*.md
+!README.md
+
+# Development files
+.git/
+.github/
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.development
+
+# Build files
+frontend/node_modules/
+
+# Scripts
+*.sh
+*.bat
+setup-env.js
+start.js
+CHECK_SETUP.js

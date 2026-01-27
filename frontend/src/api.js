@@ -113,7 +113,27 @@ export const getErrorMessage = (error) => {
     return error.message;
   }
   if (error instanceof TypeError) {
+    // Check if it's a network error
+    if (error.message.includes('fetch') || error.message.includes('NetworkError')) {
+      return 'Cannot connect to server. Please check:\n1. Backend server is running (npm run dev in backend folder)\n2. Backend URL is correct in .env file\n3. Your internet connection';
+    }
     return 'Network error. Please check your connection.';
   }
   return error.message || 'An unknown error occurred';
+};
+
+// Add a function to check backend health
+export const checkBackendHealth = async () => {
+  try {
+    const response = await fetch(`${API_URL}/health`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('Backend health check failed:', error);
+    return false;
+  }
 };
