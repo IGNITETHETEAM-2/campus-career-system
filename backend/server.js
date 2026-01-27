@@ -58,6 +58,9 @@ const allowedOrigins = [
   'http://localhost:5173',
   'https://campus-career-system-c2tx.vercel.app',
   'https://campus-career-system-c2tx-emxta2e86-vercel.app',
+  'https://campus-career-system-c2tx-g6hn8yqt3.vercel.app',
+  'https://frontend-g8epqm1nf-mohammedmuzhirtaha-9647s-projects.vercel.app',
+  'https://frontend-nine-wheat-76.vercel.app',
   process.env.CORS_ORIGIN
 ].filter(Boolean);
 
