@@ -1,4 +1,1 @@
-Backend Production URL: https://backend-9upbpoxhc-mohammedmuzhirtaha-9647s-projects.vercel.app
-Backend Alias URL: https://backend-rho-neon-47.vercel.app
-
-Deployment completed successfully!
+https://backend-40oq6q0cl-mohammedmuzhirtaha-9647s-projects.vercel.app
