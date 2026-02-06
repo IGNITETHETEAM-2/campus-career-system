@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -75,6 +76,7 @@ function App() {
         {page === 'skill-gap' && <SkillGapAnalyzer setPage={setPage} />}
         {page === 'roadmap' && <LearningRoadmap setPage={setPage} />}
       </main>
+      <SpeedInsights />
     </div>
   );
 }
