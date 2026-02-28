@@ -1,6 +1,5 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { validateRequest, schemas } = require('../utils/validation');
 
@@ -66,11 +65,11 @@ router.post('/login', validateRequest(schemas.loginUser), async (req, res) => {
       status: 'Success'
     });
 
-    // Set HTTP-Only cookie
+    // Set HTTP-Only cookie with production-ready settings
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true, // Always true for cross-site cookies
+      sameSite: 'none', // Needed for cross-site cookie sharing between frontend/backend subdomains
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 
@@ -108,6 +107,7 @@ router.get('/me', auth, async (req, res) => {
     }
     res.json(user);
   } catch (error) {
+    console.error('Profile fetch error:', error);
     res.status(500).json({ message: 'Error fetching user profile' });
   }
 });
@@ -123,6 +123,7 @@ router.post('/verify', (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
     res.json({ valid: true, user: decoded });
   } catch (error) {
+    console.error('Token verification error:', error);
     res.status(401).json({ valid: false, message: 'Invalid token' });
   }
 });

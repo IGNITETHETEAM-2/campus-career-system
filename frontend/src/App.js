@@ -19,6 +19,7 @@ function App() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        // Fetch current user from /me endpoint (uses cookie)
         const userData = await apiCall('/auth/me');
         if (userData) {
           setUser(userData);
@@ -44,22 +45,18 @@ function App() {
   const handleLogout = async () => {
     try {
       await apiCall('/auth/logout', 'POST');
+      setUser(null);
+      setPage('login');
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
+      // Fallback: clear local state anyway
       setUser(null);
       setPage('login');
     }
   };
 
   if (!isInitialized) {
-    return (
-      <div className="app-loading">
-        <span className="app-loading-logo">🎓</span>
-        <div className="app-loading-spinner" />
-        <p>Loading Campus Career System...</p>
-      </div>
-    );
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><p>Loading...</p></div>;
   }
 
   if (!user) {
@@ -68,15 +65,15 @@ function App() {
 
   return (
     <div className="app">
-      <Navbar user={user} setPage={setPage} setUser={handleLogout} currentPage={page} />
+      <Navbar user={user} setPage={setPage} setUser={handleLogout} />
       <main className="main-content">
-        {page === 'dashboard' && <Dashboard user={user} setPage={setPage} />}
-        {page === 'feedback' && <Feedback />}
-        {page === 'events' && <Events />}
-        {page === 'notices' && <Notices />}
-        {page === 'career-analysis' && <CareerAnalysis />}
-        {page === 'skill-gap' && <SkillGapAnalyzer />}
-        {page === 'roadmap' && <LearningRoadmap />}
+        {page === 'dashboard' && <Dashboard setPage={setPage} />}
+        {page === 'feedback' && <Feedback setPage={setPage} />}
+        {page === 'events' && <Events setPage={setPage} />}
+        {page === 'notices' && <Notices setPage={setPage} />}
+        {page === 'career-analysis' && <CareerAnalysis setPage={setPage} />}
+        {page === 'skill-gap' && <SkillGapAnalyzer setPage={setPage} />}
+        {page === 'roadmap' && <LearningRoadmap setPage={setPage} />}
       </main>
     </div>
   );

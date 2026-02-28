@@ -26,7 +26,7 @@ const validators = {
 
   // Phone validation (basic)
   isValidPhone: (phone) => {
-    const phoneRegex = /^[\d\s\-\+\(\)]{7,}$/;
+    const phoneRegex = /^[\d\s\-+()]{7,}$/;
     return phoneRegex.test(phone);
   },
 
@@ -42,9 +42,9 @@ const validators = {
 
   // Array of skills validation
   isValidSkillsArray: (skills) => {
-    return Array.isArray(skills) && 
-           skills.length > 0 && 
-           skills.every(skill => typeof skill === 'string' && skill.trim().length > 0);
+    return Array.isArray(skills) &&
+      skills.length > 0 &&
+      skills.every(skill => typeof skill === 'string' && skill.trim().length > 0);
   },
 
   // Date validation

@@ -1,4 +1,4 @@
-# 🔧 Fixes Applied - Campus Career System
+# 🔧 Fixes Applied - Campus Management System
 
 ## ✅ All Errors Fixed and Database Connection Improved
 

@@ -2,7 +2,7 @@
 
 ## What Changed?
 
-Your Campus Career System has been upgraded from **v1.0.0** to **v2.0.0** with:
+Your Campus Management System has been upgraded from **v1.0.0** to **v2.0.0** with:
 
 ✅ **Latest Dependencies** - All packages updated to latest stable versions  
 ✅ **Enhanced Security** - Rate limiting, security headers, data sanitization  

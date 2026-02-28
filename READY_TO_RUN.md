@@ -1,4 +1,4 @@
-# ✅ Ready to Run - Campus Career System v2.0.0
+# ✅ Ready to Run - Campus Management System v2.0.0
 
 ## 🎉 Status: All Errors Fixed & Database Connection Ready!
 

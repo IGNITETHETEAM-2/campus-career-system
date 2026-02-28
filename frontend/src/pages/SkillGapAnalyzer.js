@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { apiCall } from '../api';
 import '../App.css';
 
-const SkillGapAnalyzer = () => {
+const SkillGapAnalyzer = ({ setPage }) => {
     const [targetRole, setTargetRole] = useState('');
     const [currentSkills, setCurrentSkills] = useState([{ skill: '', proficiency: 'beginner' }]);
     const [requiredSkills, setRequiredSkills] = useState('');
@@ -190,7 +190,7 @@ const SkillGapAnalyzer = () => {
 
                     <button
                         className="btn-primary"
-                        onClick={() => window.location.href = '/roadmap'}
+                        onClick={() => setPage('roadmap')}
                         style={{ marginTop: '20px' }}
                     >
                         🗺️ Generate Learning Roadmap

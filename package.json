@@ -1,7 +1,7 @@
 {
-  "name": "campus-career-system",
+  "name": "campus-management-system",
   "version": "2.0.0",
-  "description": "Complete Campus Career System - Upgraded",
+  "description": "Complete Campus Management System",
   "main": "start.js",
   "scripts": {
     "start": "node start.js",
@@ -11,16 +11,18 @@
     "frontend": "cd frontend && npm start",
     "stop": "taskkill /F /IM node.exe",
     "setup-env": "node setup-env.js",
-    "seed": "node backend/seed-notices.js"
+    "seed": "node backend/seed-notices.js",
+    "test-all": "cd backend && npm test && cd ../frontend && npm test -- --watchAll=false"
   },
   "dependencies": {
-    "child_process": "^1.0.2"
+    "child_process": "^1.0.2",
+    "node-fetch": "^3.3.2"
   },
   "keywords": [
     "campus",
     "career",
     "system"
   ],
-  "author": "",
+  "author": "mohammedmuzhirtaha@gmail.com",
   "license": "ISC"
 }

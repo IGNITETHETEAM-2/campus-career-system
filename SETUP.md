@@ -1,4 +1,4 @@
-# Campus Career System - Complete Setup Guide
+# Campus Management System - Complete Setup Guide
 
 A full-stack application connecting students with career opportunities, campus events, and professional development resources.
 
@@ -304,7 +304,7 @@ MIT License - See LICENSE file for details
 
 ## 👥 Team
 
-Campus Career System Team
+Campus Management System Team
 
 ---
 
