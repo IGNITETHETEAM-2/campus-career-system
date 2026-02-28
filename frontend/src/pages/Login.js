@@ -26,78 +26,157 @@ function Login({ setUser }) {
       const response = await apiCall(endpoint, 'POST', payload);
 
       if (isLogin) {
-        if (response.user) {
+        if (response.token && response.user) {
+          // Store token and user data in localStorage
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('user', JSON.stringify(response.user));
+          // Call setUser to update app state
           setUser(response.user);
         } else {
           setError('Invalid response from server');
         }
       } else {
-        setError(null);
+        // Registration successful, switch to login mode
         setFormData({ email: '', password: '', name: '', role: 'student' });
         setIsLogin(true);
-        alert('Registration successful! Please login.');
+        // Show success message
+        setError('✅ Registration successful! Please log in.');
       }
-    } catch (error) {
-      setError(error.message || 'An error occurred. Please try again.');
-      console.error('Auth error:', error);
+    } catch (err) {
+      setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  const switchMode = () => {
+    setIsLogin(!isLogin);
+    setError(null);
+  };
+
+  const isSuccess = error && error.startsWith('✅');
+
   return (
     <div className="login-page">
-      <form onSubmit={handleSubmit}>
-        <h2>{isLogin ? 'Login' : 'Register'}</h2>
-        {error && <div className="error">{error}</div>}
+      <div className="login-card">
+        {/* Logo */}
+        <div className="login-logo">
+          <span className="login-logo-icon">🎓</span>
+          <h2>Campus Career System</h2>
+          <p>Your AI-powered career launchpad</p>
+        </div>
 
-        {!isLogin && (
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name"
-            value={formData.name}
-            onChange={handleChange}
-            required={!isLogin}
-          />
+        {/* Tab Toggle */}
+        <div className="login-toggle-tabs">
+          <button
+            type="button"
+            className={`login-tab-btn ${isLogin ? 'active' : ''}`}
+            onClick={() => { setIsLogin(true); setError(null); }}
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            className={`login-tab-btn ${!isLogin ? 'active' : ''}`}
+            onClick={() => { setIsLogin(false); setError(null); }}
+          >
+            Register
+          </button>
+        </div>
+
+        {/* Error / Success Banner */}
+        {error && (
+          <div
+            className="login-error"
+            style={isSuccess ? {
+              background: 'rgba(0,184,148,0.15)',
+              border: '1px solid rgba(0,184,148,0.3)',
+              color: '#00b894',
+            } : {}}
+          >
+            {error}
+          </div>
         )}
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
+        <form onSubmit={handleSubmit}>
+          {!isLogin && (
+            <div className="login-field">
+              <label>Full Name</label>
+              <input
+                type="text"
+                name="name"
+                placeholder="John Doe"
+                value={formData.name}
+                onChange={handleChange}
+                required={!isLogin}
+                autoComplete="name"
+              />
+            </div>
+          )}
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
+          <div className="login-field">
+            <label>Email Address</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              autoComplete="email"
+            />
+          </div>
 
-        {!isLogin && (
-          <select name="role" value={formData.role} onChange={handleChange}>
-            <option value="student">Student</option>
-            <option value="recruiter">Recruiter</option>
-          </select>
-        )}
+          <div className="login-field">
+            <label>Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              autoComplete={isLogin ? 'current-password' : 'new-password'}
+            />
+          </div>
 
-        <button type="submit" disabled={loading}>
-          {loading ? 'Loading...' : (isLogin ? 'Login' : 'Register')}
-        </button>
+          {!isLogin && (
+            <div className="login-field">
+              <label>Role</label>
+              <select name="role" value={formData.role} onChange={handleChange}>
+                <option value="student">Student</option>
+                <option value="recruiter">Recruiter</option>
+              </select>
+            </div>
+          )}
 
-        <p onClick={() => {
-          setIsLogin(!isLogin);
-          setError(null);
-        }}>
-          {isLogin ? "Don't have an account? Register" : 'Already have an account? Login'}
+          {!isLogin && (
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+              🔐 Password must be at least 6 characters
+            </p>
+          )}
+
+          <button type="submit" className="login-submit-btn" disabled={loading}>
+            {loading
+              ? '⏳ Please wait...'
+              : isLogin
+                ? '🚀 Login'
+                : '✨ Create Account'}
+          </button>
+        </form>
+
+        <p
+          style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}
+          onClick={switchMode}
+        >
+          {isLogin
+            ? "Don't have an account? "
+            : 'Already have an account? '}
+          <span style={{ color: 'var(--primary-light)', fontWeight: 600 }}>
+            {isLogin ? 'Register here' : 'Login'}
+          </span>
         </p>
-      </form>
+      </div>
     </div>
   );
 }

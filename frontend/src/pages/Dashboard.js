@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { apiCall } from '../api';
 
-function Dashboard() {
+const QUICK_ACTIONS = [
+  { key: 'career-analysis', icon: '🤖', label: 'AI Career Analysis', desc: 'Upload resume & match jobs' },
+  { key: 'skill-gap', icon: '🎯', label: 'Skill Gap Analyzer', desc: 'Find what skills you need' },
+  { key: 'roadmap', icon: '🗺️', label: 'Learning Roadmap', desc: 'View your learning path' },
+  { key: 'notices', icon: '📢', label: 'Notices & Updates', desc: 'Campus announcements' },
+];
+
+function Dashboard({ user, setPage }) {
   const [stats, setStats] = useState({ events: 0, notices: 0, feedback: 0 });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        setLoading(true);
-        setError(null);
         const [eventsData, noticesData, feedbackData] = await Promise.all([
           apiCall('/events').catch(() => []),
           apiCall('/notices').catch(() => []),
@@ -21,10 +25,8 @@ function Dashboard() {
           notices: Array.isArray(noticesData) ? noticesData.length : 0,
           feedback: Array.isArray(feedbackData) ? feedbackData.length : 0
         });
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-        setError('Failed to load dashboard stats');
-        setStats({ events: 0, notices: 0, feedback: 0 });
+      } catch (err) {
+        console.error('Error fetching stats:', err);
       } finally {
         setLoading(false);
       }
@@ -32,16 +34,59 @@ function Dashboard() {
     fetchStats();
   }, []);
 
-  if (loading) return <div className="dashboard"><p>Loading...</p></div>;
-  if (error) return <div className="dashboard"><p className="error">{error}</p></div>;
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
     <div className="dashboard">
-      <h2>Dashboard</h2>
+      {/* Greeting */}
+      <div className="dashboard-greeting">
+        <h2>{greeting}, {user?.name?.split(' ')[0] || 'there'} 👋</h2>
+        <p>Here's what's happening on campus today.</p>
+      </div>
+
+      {/* Stats */}
       <div className="stats">
-        <div className="stat-card"><h3>Events</h3><p>{stats.events}</p></div>
-        <div className="stat-card"><h3>Notices</h3><p>{stats.notices}</p></div>
-        <div className="stat-card"><h3>Feedback</h3><p>{stats.feedback}</p></div>
+        <div className="stat-card">
+          <h3>🗓️ Upcoming Events</h3>
+          <p>{loading ? '—' : stats.events}</p>
+        </div>
+        <div className="stat-card">
+          <h3>📢 Active Notices</h3>
+          <p>{loading ? '—' : stats.notices}</p>
+        </div>
+        <div className="stat-card">
+          <h3>💬 Feedback Sessions</h3>
+          <p>{loading ? '—' : stats.feedback}</p>
+        </div>
+        <div className="stat-card">
+          <h3>🤖 AI Features</h3>
+          <p>3</p>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div style={{ marginTop: '2rem' }}>
+        <h3 style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1rem' }}>
+          Quick Actions
+        </h3>
+        <div className="list-container" style={{ marginTop: 0 }}>
+          {QUICK_ACTIONS.map(action => (
+            <div
+              key={action.key}
+              className="card"
+              style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+              onClick={() => setPage && setPage(action.key)}
+            >
+              <div style={{ fontSize: '2rem' }}>{action.icon}</div>
+              <h4 style={{ fontSize: '1rem', fontWeight: 700 }}>{action.label}</h4>
+              <p style={{ fontSize: '0.875rem', margin: 0 }}>{action.desc}</p>
+              <span style={{ color: 'var(--primary-light)', fontSize: '0.82rem', fontWeight: 600, marginTop: 'auto' }}>
+                Open →
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

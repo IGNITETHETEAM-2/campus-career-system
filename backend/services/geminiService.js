@@ -8,7 +8,51 @@ class GeminiService {
             this.genAI = null;
         } else {
             this.genAI = new GoogleGenerativeAI(apiKey);
-            this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+            this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        }
+    }
+
+    /**
+     * Parse resume text using AI to extract structured data
+     */
+    async parseResumeFromText(resumeText) {
+        if (!this.genAI) {
+            return this.fallbackResumeParser(resumeText);
+        }
+
+        try {
+            const prompt = `You are a resume parser AI. Extract structured information from the following resume text.
+
+Resume Text:
+${resumeText}
+
+Return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
+{
+  "fullName": "extracted name or empty string",
+  "email": "extracted email or empty string",
+  "phone": "extracted phone or empty string",
+  "skills": ["skill1", "skill2", "..."],
+  "experience": [
+    { "company": "", "position": "", "duration": "", "description": "" }
+  ],
+  "education": [
+    { "institution": "", "degree": "", "field": "", "year": "" }
+  ],
+  "certifications": ["cert1", "cert2"]
+}
+
+Extract all technical skills, programming languages, frameworks, tools, and soft skills mentioned.
+Return ONLY valid JSON, no markdown formatting.`;
+
+            const result = await this.model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+            const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            const parsed = JSON.parse(cleanText);
+            return parsed;
+        } catch (error) {
+            console.error('Gemini resume parse error:', error.message);
+            return this.fallbackResumeParser(resumeText);
         }
     }
 
@@ -41,7 +85,6 @@ Return ONLY valid JSON, no markdown formatting.`;
             const response = await result.response;
             const text = response.text();
 
-            // Clean up response (remove markdown code blocks if present)
             const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
             const analysis = JSON.parse(cleanText);
 
@@ -61,11 +104,15 @@ Return ONLY valid JSON, no markdown formatting.`;
         }
 
         try {
+            const missingSkills = Array.isArray(skillGapAnalysis.missingSkills)
+                ? skillGapAnalysis.missingSkills.join(', ')
+                : 'various skills';
+
             const prompt = `You are a career development AI. Create a personalized learning roadmap.
 
 Target Role: ${targetRole}
 Current Level: ${currentLevel}
-Missing Skills: ${skillGapAnalysis.missingSkills.join(', ')}
+Missing Skills: ${missingSkills}
 Match Percentage: ${skillGapAnalysis.matchPercentage}%
 
 Create a detailed learning roadmap in JSON format with:
@@ -75,7 +122,7 @@ Create a detailed learning roadmap in JSON format with:
    - title (phase name)
    - description (what to achieve)
    - duration (time needed)
-   - skills (array of skills to learn)
+   - skills (array of skills to learn in this phase)
    - activities (array of specific activities)
    - resources (array of recommended learning resources)
    - milestones (array of checkpoints)
@@ -115,8 +162,8 @@ Resume Details:
 - Skills: ${resume.skills.join(', ')}
 - Experience: ${resume.experience.length} positions
 - Education: ${resume.education.map(e => e.degree).join(', ')}
-- Projects: ${resume.projects.length} projects
-- Certifications: ${resume.certifications.join(', ')}
+- Projects: ${resume.projects ? resume.projects.length : 0} projects
+- Certifications: ${(resume.certifications || []).join(', ')}
 
 Provide evaluation in JSON format with:
 1. eligibilityScore (0-100)
@@ -143,6 +190,45 @@ Return ONLY valid JSON, no markdown formatting.`;
         }
     }
 
+    // Fallback: simple regex-based resume parser
+    fallbackResumeParser(text) {
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        
+        // Extract email
+        const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w+/);
+        const email = emailMatch ? emailMatch[0] : '';
+
+        // Extract phone
+        const phoneMatch = text.match(/(\+?\d[\d\s\-().]{8,14}\d)/);
+        const phone = phoneMatch ? phoneMatch[0] : '';
+
+        // Extract name (first non-empty line, usually)
+        const fullName = lines[0] || '';
+
+        // Extract skills — look for common tech keywords
+        const techKeywords = [
+            'JavaScript', 'Python', 'Java', 'C++', 'C#', 'React', 'Node.js', 'Angular',
+            'Vue', 'HTML', 'CSS', 'SQL', 'MongoDB', 'PostgreSQL', 'MySQL', 'AWS', 'Azure',
+            'GCP', 'Docker', 'Kubernetes', 'Git', 'TypeScript', 'PHP', 'Ruby', 'Swift',
+            'Kotlin', 'Flutter', 'Django', 'Flask', 'Spring', 'Express', 'REST', 'GraphQL',
+            'Machine Learning', 'Deep Learning', 'TensorFlow', 'PyTorch', 'Data Science',
+            'Linux', 'Agile', 'Scrum', 'DevOps', 'CI/CD', 'Redux', 'Webpack', 'Figma',
+        ];
+        const skills = techKeywords.filter(kw =>
+            new RegExp(`\\b${kw}\\b`, 'i').test(text)
+        );
+
+        return {
+            fullName,
+            email,
+            phone,
+            skills,
+            experience: [],
+            education: [],
+            certifications: []
+        };
+    }
+
     // Fallback methods when AI is not available
     fallbackSkillGapAnalysis(currentSkills, targetRole, requiredSkills) {
         const currentSkillNames = currentSkills.map(s => s.skill.toLowerCase());
@@ -150,7 +236,9 @@ Return ONLY valid JSON, no markdown formatting.`;
             currentSkillNames.some(curr => curr.includes(req.toLowerCase()) || req.toLowerCase().includes(curr))
         );
         const missing = requiredSkills.filter(req => !matched.includes(req));
-        const matchPercentage = Math.round((matched.length / requiredSkills.length) * 100);
+        const matchPercentage = requiredSkills.length > 0
+            ? Math.round((matched.length / requiredSkills.length) * 100)
+            : 0;
 
         return {
             matchPercentage,
@@ -168,7 +256,8 @@ Return ONLY valid JSON, no markdown formatting.`;
     }
 
     fallbackRoadmapGeneration(skillGapAnalysis, targetRole) {
-        const missingCount = skillGapAnalysis.missingSkills.length;
+        const missingSkills = skillGapAnalysis.missingSkills || [];
+        const missingCount = missingSkills.length;
         return {
             totalDuration: `${Math.max(12, missingCount * 3)}-${Math.max(16, missingCount * 4)} weeks`,
             phases: [
@@ -177,7 +266,7 @@ Return ONLY valid JSON, no markdown formatting.`;
                     title: 'Foundation Building',
                     description: 'Learn core missing skills',
                     duration: '4-6 weeks',
-                    skills: skillGapAnalysis.missingSkills.slice(0, 3),
+                    skills: missingSkills.slice(0, 3),
                     activities: ['Online courses', 'Practice exercises', 'Small projects'],
                     resources: ['freeCodeCamp', 'Coursera', 'Udemy'],
                     milestones: ['Complete 2 beginner projects', 'Pass skill assessments']
@@ -187,7 +276,7 @@ Return ONLY valid JSON, no markdown formatting.`;
                     title: 'Skill Development',
                     description: 'Deepen knowledge and build projects',
                     duration: '6-8 weeks',
-                    skills: skillGapAnalysis.missingSkills.slice(3),
+                    skills: missingSkills.slice(3),
                     activities: ['Build portfolio projects', 'Contribute to open source'],
                     resources: ['GitHub', 'Project tutorials', 'Documentation'],
                     milestones: ['Complete 3 intermediate projects', 'Build portfolio']
@@ -210,7 +299,9 @@ Return ONLY valid JSON, no markdown formatting.`;
         const matchedSkills = resume.skills.filter(skill =>
             requiredSkills.some(req => skill.toLowerCase().includes(req.toLowerCase()))
         );
-        const score = Math.round((matchedSkills.length / requiredSkills.length) * 100);
+        const score = requiredSkills.length > 0
+            ? Math.round((matchedSkills.length / requiredSkills.length) * 100)
+            : 0;
 
         return {
             eligibilityScore: score,

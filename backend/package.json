@@ -9,7 +9,8 @@
     "test": "jest --detectOpenHandles",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "check-updates": "npm outdated"
+    "check-updates": "npm outdated",
+    "seed-test-users": "node seed-test-user.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",

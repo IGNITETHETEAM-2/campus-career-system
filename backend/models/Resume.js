@@ -32,6 +32,7 @@ const resumeSchema = new mongoose.Schema({
   ],
   certifications: [String],
   resumeText: String,
+  fileName: String,
   uploadedAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

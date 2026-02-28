@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const roadmapSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  jobPostingId: { type: mongoose.Schema.Types.ObjectId, ref: 'JobPosting' },
+  jobPostingId: String,
   targetRole: String,
   currentLevel: String,
   matchPercentage: Number,
@@ -22,7 +22,10 @@ const roadmapSchema = new mongoose.Schema({
       title: String,
       description: String,
       duration: String,
-      activities: [String]
+      skills: [String],
+      activities: [String],
+      resources: [String],
+      milestones: [String]
     }
   ],
   generatedAt: { type: Date, default: Date.now },

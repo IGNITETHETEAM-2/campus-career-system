@@ -24,6 +24,14 @@ router.post('/analyze', auth, async (req, res) => {
             requiredSkills
         );
 
+        // Normalise recommendations: map suggestedResources → resources for DB schema compatibility
+        const normalizedRecs = (analysis.recommendations || []).map(rec => ({
+            skill: rec.skill,
+            priority: rec.priority || 'medium',
+            resources: rec.resources || rec.suggestedResources || [],
+            estimatedTime: rec.estimatedTime || '3-4 weeks'
+        }));
+
         // Save analysis to database
         const skillGapAnalysis = await SkillGapAnalysis.create({
             userId: req.userId,
@@ -33,7 +41,7 @@ router.post('/analyze', auth, async (req, res) => {
             matchedSkills: analysis.matchedSkills,
             missingSkills: analysis.missingSkills,
             matchPercentage: analysis.matchPercentage,
-            recommendations: analysis.recommendations,
+            recommendations: normalizedRecs,
             aiInsights: analysis.insights,
             eligibilityScore: analysis.eligibilityScore
         });

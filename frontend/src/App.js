@@ -19,7 +19,6 @@ function App() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Fetch current user from /me endpoint (uses cookie)
         const userData = await apiCall('/auth/me');
         if (userData) {
           setUser(userData);
@@ -45,18 +44,22 @@ function App() {
   const handleLogout = async () => {
     try {
       await apiCall('/auth/logout', 'POST');
-      setUser(null);
-      setPage('login');
     } catch (error) {
       console.error('Logout error:', error);
-      // Fallback: clear local state anyway
+    } finally {
       setUser(null);
       setPage('login');
     }
   };
 
   if (!isInitialized) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><p>Loading...</p></div>;
+    return (
+      <div className="app-loading">
+        <span className="app-loading-logo">🎓</span>
+        <div className="app-loading-spinner" />
+        <p>Loading Campus Career System...</p>
+      </div>
+    );
   }
 
   if (!user) {
@@ -65,9 +68,9 @@ function App() {
 
   return (
     <div className="app">
-      <Navbar user={user} setPage={setPage} setUser={handleLogout} />
+      <Navbar user={user} setPage={setPage} setUser={handleLogout} currentPage={page} />
       <main className="main-content">
-        {page === 'dashboard' && <Dashboard />}
+        {page === 'dashboard' && <Dashboard user={user} setPage={setPage} />}
         {page === 'feedback' && <Feedback />}
         {page === 'events' && <Events />}
         {page === 'notices' && <Notices />}

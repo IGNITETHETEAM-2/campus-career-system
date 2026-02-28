@@ -100,6 +100,27 @@ export const apiCallAuth = (endpoint, method = 'GET', data = null) => {
   });
 };
 
+// Helper for file-based resume upload (sends extracted text as JSON)
+export const apiUpload = async (endpoint, file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target.result;
+        const data = await apiCall(endpoint, 'POST', {
+          resumeText: text,
+          fileName: file.name
+        });
+        resolve(data);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsText(file);
+  });
+};
+
 // Helper to format error messages
 export const getErrorMessage = (error) => {
   if (error instanceof APIError) {

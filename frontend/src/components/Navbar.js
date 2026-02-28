@@ -1,20 +1,52 @@
 import React from 'react';
 
-function Navbar({ user, setPage, setUser }) {
+const NAV_ITEMS = [
+  { key: 'dashboard', label: '🏠 Home' },
+  { key: 'career-analysis', label: '🤖 AI Analysis' },
+  { key: 'skill-gap', label: '🎯 Skill Gap' },
+  { key: 'roadmap', label: '🗺️ Roadmap' },
+  { key: 'notices', label: '📢 Notices' },
+  { key: 'events', label: '🗓️ Events' },
+  { key: 'feedback', label: '💬 Feedback' },
+];
+
+function Navbar({ user, setPage, setUser, currentPage }) {
+  const initials = user?.name
+    ? user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    : '?';
+
   return (
     <nav className="navbar">
-      <h1>🎓 Campus Career System</h1>
-      <ul>
-        <li><button onClick={() => setPage('dashboard')}>Dashboard</button></li>
-        <li><button onClick={() => setPage('skill-gap')}>🎯 Skill Gap</button></li>
-        <li><button onClick={() => setPage('roadmap')}>🗺️ Roadmap</button></li>
-        <li><button onClick={() => setPage('career-analysis')}>🤖 AI Analysis</button></li>
-        <li><button onClick={() => setPage('events')}>Events</button></li>
-        <li><button onClick={() => setPage('notices')}>📢 Notices</button></li>
-        <li><button onClick={() => setPage('feedback')}>Feedback</button></li>
-        <li><button onClick={setUser}>Logout</button></li>
+      {/* Brand */}
+      <div className="navbar-brand" onClick={() => setPage('dashboard')} style={{ cursor: 'pointer' }}>
+        <span className="navbar-brand-icon">🎓</span>
+        <h1>Campus Career</h1>
+      </div>
+
+      {/* Nav Links */}
+      <ul className="navbar-nav">
+        {NAV_ITEMS.map(item => (
+          <li key={item.key}>
+            <button
+              className={currentPage === item.key ? 'active-nav' : ''}
+              onClick={() => setPage(item.key)}
+            >
+              {item.label}
+            </button>
+          </li>
+        ))}
+        <li>
+          <button className="logout-btn" onClick={setUser}>
+            🚪 Logout
+          </button>
+        </li>
       </ul>
-      <p>Welcome, {user?.name}</p>
+
+      {/* User Badge */}
+      <div className="navbar-user">
+        <div className="navbar-user-avatar">{initials}</div>
+        <span className="navbar-user-name">{user?.name}</span>
+      </div>
     </nav>
   );
 }
