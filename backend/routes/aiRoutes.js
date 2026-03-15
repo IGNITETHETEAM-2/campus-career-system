@@ -134,7 +134,7 @@ router.post('/roadmap', auth, async (req, res) => {
 
     const savedRoadmap = await CareerRoadmap.create({
       userId: req.userId,
-      jobPostingId,
+      jobPostingId: jobPosting?._id || null,
       ...roadmap
     });
 

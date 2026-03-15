@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const roadmapSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  jobPostingId: { type: mongoose.Schema.Types.ObjectId, ref: 'JobPosting' },
+  jobPostingId: { type: String, default: null },
   targetRole: String,
   currentLevel: String,
   matchPercentage: Number,

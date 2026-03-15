@@ -53,11 +53,6 @@ function CareerAnalysis() {
     }
   };
 
-  const handleResumeChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -117,30 +112,6 @@ function CareerAnalysis() {
     }
   };
 
-  const handleSaveResume = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      const resumeData = {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        skills: formData.skills.split(',').map(s => s.trim()),
-        experience: JSON.parse(formData.experience),
-        education: JSON.parse(formData.education),
-        projects: JSON.parse(formData.projects),
-        certifications: formData.certifications.split(',').map(c => c.trim())
-      };
-      const data = await apiCall('/ai/resume', 'POST', resumeData);
-      setResume(data.resume);
-      setShowResumeForm(false);
-    } catch (error) {
-      setError('Failed to save resume: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAnalyzeJob = async (jobId) => {
     if (!resume) {
       setError('Please upload your resume first');
@@ -194,7 +165,7 @@ function CareerAnalysis() {
             <button onClick={() => setShowResumeForm(true)}>Update Resume</button>
           </div>
         ) : (
-          <button onClick={() => setShowResumeForm(true)}>📁 Upload or Create Resume</button>
+          <button onClick={() => setShowResumeForm(true)}>📁 Upload Resume (PDF or Image)</button>
         )}
       </div>
 
@@ -221,77 +192,6 @@ function CareerAnalysis() {
                 className="upload-btn"
               >
                 {loading ? 'Uploading...' : 'Upload Resume'}
-              </button>
-            </div>
-
-            <div className="divider">OR</div>
-
-            {/* Manual Form Section */}
-            <h5>✏️Enter Resume Details Manually</h5>
-            <input
-              type="text"
-              name="fullName"
-              placeholder="Full Name"
-              value={formData.fullName}
-              onChange={handleResumeChange}
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleResumeChange}
-            />
-            <input
-              type="tel"
-              name="phone"
-              placeholder="Phone Number"
-              value={formData.phone}
-              onChange={handleResumeChange}
-            />
-            <textarea
-              name="skills"
-              placeholder="Skills (comma-separated: JavaScript, React, Node.js)"
-              value={formData.skills}
-              onChange={handleResumeChange}
-              required
-            ></textarea>
-            <textarea
-              name="experience"
-              placeholder="Experience (JSON format)"
-              value={formData.experience}
-              onChange={handleResumeChange}
-              rows="4"
-            ></textarea>
-            <textarea
-              name="education"
-              placeholder="Education (JSON format)"
-              value={formData.education}
-              onChange={handleResumeChange}
-              rows="4"
-            ></textarea>
-            <textarea
-              name="projects"
-              placeholder="Projects (JSON format)"
-              value={formData.projects}
-              onChange={handleResumeChange}
-              rows="4"
-            ></textarea>
-            <textarea
-              name="certifications"
-              placeholder="Certifications (comma-separated)"
-              value={formData.certifications}
-              onChange={handleResumeChange}
-            ></textarea>
-            <div className="button-group">
-              <button type="submit" onClick={handleSaveResume} disabled={loading}>
-                {loading ? 'Saving...' : 'Save Resume'}
-              </button>
-              <button type="button" onClick={() => {
-                setShowResumeForm(false);
-                setResumeFile(null);
-              }}>
-                Cancel
               </button>
             </div>
           </div>
