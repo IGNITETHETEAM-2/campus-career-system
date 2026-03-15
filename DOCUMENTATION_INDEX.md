@@ -1,4 +1,4 @@
-# 📚 Documentation Index - Campus Management System
+# 📚 Documentation Index - Campus Career System
 
 Complete guide to all documentation files and where to find information you need.
 

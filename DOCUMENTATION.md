@@ -1,6 +1,6 @@
-# Campus Management System - Documentation Index
+# Campus Career System - Documentation Index
 
-Welcome! This directory contains comprehensive documentation for the Campus Management System project. Below is a guide to navigate all available resources.
+Welcome! This directory contains comprehensive documentation for the Campus Career System project. Below is a guide to navigate all available resources.
 
 ## 📋 Quick Navigation
 
@@ -244,4 +244,4 @@ campus-career-system/
 **Last Updated**: January 2026  
 **Version**: 1.0.0  
 **Status**: Production Ready  
-**Maintainer**: Campus Management System Team
+**Maintainer**: Campus Career System Team

@@ -1,11 +1,86 @@
 const express = require('express');
 const auth = require('../middleware/auth');
+const upload = require('../middleware/fileUpload');
 const Resume = require('../models/Resume');
 const CareerRoadmap = require('../models/CareerRoadmap');
 const aiService = require('../services/aiService');
 const geminiService = require('../services/geminiService');
+const resumeParsingService = require('../services/resumeParsingService');
+const User = require('../models/User');
 
 const router = express.Router();
+
+// Upload and parse resume from PDF/JPG
+router.post('/resume/upload', auth, upload.single('resume'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    let resumeText = '';
+
+    // Extract text based on file type
+    if (req.file.mimetype === 'application/pdf') {
+      resumeText = await resumeParsingService.extractTextFromPDF(req.file.buffer);
+    } else if (req.file.mimetype.startsWith('image/')) {
+      resumeText = await resumeParsingService.extractTextFromImage(
+        req.file.buffer,
+        req.file.mimetype
+      );
+    }
+
+    // Parse resume text using AI
+    const parsedData = await resumeParsingService.parseResumeText(
+      resumeText,
+      user.email,
+      user.name
+    );
+
+    // Create or update resume
+    let resume = await Resume.findOne({ userId: req.userId });
+    if (!resume) {
+      resume = new Resume({ userId: req.userId });
+    }
+
+    // Update resume with parsed data
+    Object.assign(resume, parsedData, {
+      resumeText,
+      fileData: {
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        buffer: req.file.buffer
+      },
+      isParsed: true,
+      parseError: null,
+      updatedAt: new Date()
+    });
+
+    await resume.save();
+
+    res.status(201).json({
+      message: 'Resume uploaded and parsed successfully',
+      resume: {
+        fullName: resume.fullName,
+        email: resume.email,
+        phone: resume.phone,
+        skills: resume.skills,
+        experience: resume.experience,
+        education: resume.education,
+        projects: resume.projects,
+        certifications: resume.certifications
+      }
+    });
+  } catch (error) {
+    console.error('Resume upload error:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
 
 // Get sample job postings
 router.get('/jobs', async (req, res) => {
@@ -17,144 +92,11 @@ router.get('/jobs', async (req, res) => {
   }
 });
 
-// Upload resume from file text (text extracted in browser, sent as JSON)
-router.post('/upload-resume-text', auth, async (req, res) => {
-  try {
-    const { resumeText, fileName } = req.body;
-
-    if (!resumeText || resumeText.trim().length < 10) {
-      return res.status(400).json({ message: 'Resume text is too short or empty' });
-    }
-
-    // Parse resume using AI
-    const parsed = await geminiService.parseResumeFromText(resumeText);
-
-    // Ensure skills array is populated
-    if (!parsed.skills || parsed.skills.length === 0) {
-      parsed.skills = ['See resume text'];
-    }
-
-    // Save or update resume
-    let resume = await Resume.findOne({ userId: req.userId });
-    if (resume) {
-      resume.fullName = parsed.fullName || resume.fullName;
-      resume.email = parsed.email || resume.email;
-      resume.phone = parsed.phone || resume.phone;
-      resume.skills = parsed.skills;
-      resume.experience = parsed.experience || resume.experience;
-      resume.education = parsed.education || resume.education;
-      resume.certifications = parsed.certifications || resume.certifications;
-      resume.resumeText = resumeText;
-      resume.fileName = fileName || 'uploaded_resume';
-      resume.updatedAt = new Date();
-    } else {
-      resume = new Resume({
-        userId: req.userId,
-        fullName: parsed.fullName || '',
-        email: parsed.email || '',
-        phone: parsed.phone || '',
-        skills: parsed.skills,
-        experience: parsed.experience || [],
-        education: parsed.education || [],
-        certifications: parsed.certifications || [],
-        resumeText,
-        fileName: fileName || 'uploaded_resume',
-      });
-    }
-
-    await resume.save();
-
-    res.status(201).json({
-      success: true,
-      resume: {
-        _id: resume._id,
-        fullName: resume.fullName,
-        email: resume.email,
-        skills: resume.skills,
-        experience: resume.experience,
-        education: resume.education,
-        certifications: resume.certifications,
-        fileName: resume.fileName,
-        updatedAt: resume.updatedAt
-      },
-      parsedData: parsed
-    });
-  } catch (error) {
-    console.error('Resume upload error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Analyze resume against a job AND generate roadmap if skills < required
-router.post('/analyze-and-roadmap', auth, async (req, res) => {
-  try {
-    const { jobPostingId, jobData } = req.body;
-
-    const resume = await Resume.findOne({ userId: req.userId });
-    if (!resume) {
-      return res.status(404).json({ message: 'Resume not found. Please upload your resume first.' });
-    }
-
-    const jobPosting = jobData || aiService.getSampleJobPostings().find(j => j._id === jobPostingId);
-    if (!jobPosting) {
-      return res.status(404).json({ message: 'Job posting not found' });
-    }
-
-    // Skill match analysis
-    const analysis = aiService.analyzeResume(resume, jobPosting);
-
-    let roadmap = null;
-    let savedRoadmap = null;
-
-    // Auto-generate roadmap if there are missing skills
-    if (analysis.missingSkills && analysis.missingSkills.length > 0) {
-      try {
-        const currentLevel = aiService.determineCurrentLevel(resume);
-        const aiRoadmap = await geminiService.generateLearningRoadmap(
-          analysis,
-          jobPosting.title,
-          currentLevel
-        );
-
-        const roadmapData = aiService.generateRoadmap(resume, jobPosting, analysis);
-
-        savedRoadmap = await CareerRoadmap.create({
-          userId: req.userId,
-          jobPostingId: jobPostingId || jobPosting._id,
-          ...roadmapData,
-          roadmapSteps: aiRoadmap.phases || roadmapData.roadmapSteps
-        });
-
-        roadmap = savedRoadmap;
-      } catch (roadmapError) {
-        console.error('Roadmap generation error:', roadmapError.message);
-        // Return analysis even if roadmap generation fails
-      }
-    }
-
-    res.json({
-      success: true,
-      analysis,
-      roadmap,
-      jobPosting: {
-        _id: jobPosting._id,
-        title: jobPosting.title,
-        company: jobPosting.company,
-        requiredSkills: jobPosting.requiredSkills
-      },
-      autoGeneratedRoadmap: !!roadmap
-    });
-  } catch (error) {
-    console.error('Analyze and roadmap error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Analyze resume against job (legacy endpoint kept for compatibility)
+// Analyze resume against job
 router.post('/analyze', auth, async (req, res) => {
   try {
     const { jobPostingId, jobData } = req.body;
-
+    
     const resume = await Resume.findOne({ userId: req.userId });
     if (!resume) {
       return res.status(404).json({ message: 'Resume not found. Please upload your resume first.' });
@@ -172,7 +114,7 @@ router.post('/analyze', auth, async (req, res) => {
   }
 });
 
-// Generate career roadmap with AI
+// Generate career roadmap
 router.post('/roadmap', auth, async (req, res) => {
   try {
     const { jobPostingId, jobData } = req.body;
@@ -188,20 +130,12 @@ router.post('/roadmap', auth, async (req, res) => {
     }
 
     const analysis = aiService.analyzeResume(resume, jobPosting);
-
-    const aiRoadmap = await geminiService.generateLearningRoadmap(
-      analysis,
-      jobPosting.title,
-      aiService.determineCurrentLevel(resume)
-    );
-
     const roadmap = aiService.generateRoadmap(resume, jobPosting, analysis);
 
     const savedRoadmap = await CareerRoadmap.create({
       userId: req.userId,
-      jobPostingId: jobPostingId || jobPosting._id,
-      ...roadmap,
-      roadmapSteps: aiRoadmap.phases || roadmap.roadmapSteps
+      jobPostingId,
+      ...roadmap
     });
 
     res.status(201).json(savedRoadmap);
@@ -220,13 +154,16 @@ router.get('/roadmaps', auth, async (req, res) => {
   }
 });
 
-// Upload/Update resume (legacy JSON endpoint)
+// Upload/Update resume
 router.post('/resume', auth, async (req, res) => {
   try {
-    const { skills, experience, education, projects, certifications } = req.body;
+    const { skills, experience, education, projects, certifications, fullName, email, phone } = req.body;
 
     let resume = await Resume.findOne({ userId: req.userId });
     if (resume) {
+      resume.fullName = fullName || resume.fullName;
+      resume.email = email || resume.email;
+      resume.phone = phone || resume.phone;
       resume.skills = skills;
       resume.experience = experience;
       resume.education = education;
@@ -236,6 +173,9 @@ router.post('/resume', auth, async (req, res) => {
     } else {
       resume = new Resume({
         userId: req.userId,
+        fullName: fullName || '',
+        email: email || '',
+        phone: phone || '',
         skills,
         experience,
         education,
@@ -245,7 +185,10 @@ router.post('/resume', auth, async (req, res) => {
     }
 
     await resume.save();
-    res.status(201).json(resume);
+    res.status(201).json({
+      message: 'Resume updated successfully',
+      resume
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -264,92 +207,170 @@ router.get('/resume', auth, async (req, res) => {
   }
 });
 
-// AI-powered resume verification
-router.post('/verify-resume', auth, async (req, res) => {
+// Analyze resume with AI against job posting
+router.post('/resume/analyze', auth, async (req, res) => {
   try {
-    const { jobRole, requiredSkills } = req.body;
+    const { jobPostingId, jobData } = req.body;
 
     const resume = await Resume.findOne({ userId: req.userId });
     if (!resume) {
-      return res.status(404).json({ message: 'Resume not found. Please upload your resume first.' });
-    }
-
-    const verification = await geminiService.verifyResumeEligibility(
-      resume,
-      jobRole,
-      requiredSkills
-    );
-
-    res.json({
-      success: true,
-      verification
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Update learning progress
-router.post('/roadmap-progress', auth, async (req, res) => {
-  try {
-    const { roadmapId, completedStep, skillLearned } = req.body;
-    const LearningProgress = require('../models/LearningProgress');
-
-    let progress = await LearningProgress.findOne({ userId: req.userId, roadmapId });
-
-    if (!progress) {
-      progress = new LearningProgress({
-        userId: req.userId,
-        roadmapId
+      return res.status(404).json({
+        message: 'Resume not found. Please upload your resume first.'
       });
     }
 
-    if (completedStep) {
-      progress.completedSteps.push(completedStep);
+    const jobPosting =
+      jobData || aiService.getSampleJobPostings().find((j) => j._id === jobPostingId);
+    if (!jobPosting) {
+      return res.status(404).json({ message: 'Job posting not found' });
     }
 
-    if (skillLearned) {
-      progress.skillsLearned.push(skillLearned);
-    }
+    // Basic analysis using aiService
+    const basicAnalysis = aiService.analyzeResume(resume, jobPosting);
 
-    const roadmap = await CareerRoadmap.findById(roadmapId);
-    if (roadmap) {
-      const totalSteps = roadmap.roadmapSteps.length;
-      const completed = progress.completedSteps.length;
-      progress.completionPercentage = Math.round((completed / totalSteps) * 100);
+    // Enhanced analysis using Gemini AI if available
+    let enhancedAnalysis = basicAnalysis;
+    try {
+      enhancedAnalysis = await geminiService.analyzeSkillGap(
+        resume.skills.map((skill) => ({ skill, proficiency: 'Intermediate' })),
+        jobPosting.title,
+        jobPosting.requiredSkills
+      );
+    } catch (error) {
+      console.warn('Gemini analysis failed, using basic analysis:', error.message);
     }
-
-    progress.lastUpdated = new Date();
-    await progress.save();
 
     res.json({
-      success: true,
-      progress
+      jobPosting: {
+        id: jobPosting._id,
+        title: jobPosting.title,
+        company: jobPosting.company,
+        requiredSkills: jobPosting.requiredSkills
+      },
+      analysis: {
+        matchPercentage: enhancedAnalysis.matchPercentage,
+        matchedSkills: enhancedAnalysis.matchedSkills,
+        missingSkills: enhancedAnalysis.missingSkills,
+        strengthSkills: basicAnalysis.strengthSkills,
+        summary: enhancedAnalysis.insights || basicAnalysis.summary,
+        recommendations:
+          enhancedAnalysis.recommendations || basicAnalysis.recommendations
+      }
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Analysis error:', error);
+    res.status(400).json({ error: error.message });
   }
 });
 
-// Get learning progress
-router.get('/roadmap-progress/:roadmapId', auth, async (req, res) => {
+// Generate AI-powered career roadmap
+router.post('/resume/generate-roadmap', auth, async (req, res) => {
   try {
-    const LearningProgress = require('../models/LearningProgress');
-    const progress = await LearningProgress.findOne({
-      userId: req.userId,
-      roadmapId: req.params.roadmapId
-    });
+    const { jobPostingId, jobData, targetRole } = req.body;
 
-    if (!progress) {
-      return res.status(404).json({ message: 'No progress found for this roadmap' });
+    const resume = await Resume.findOne({ userId: req.userId });
+    if (!resume) {
+      return res.status(404).json({
+        message: 'Resume not found. Please upload your resume first.'
+      });
     }
 
-    res.json({
-      success: true,
-      progress
+    const jobPosting =
+      jobData || aiService.getSampleJobPostings().find((j) => j._id === jobPostingId);
+    if (!jobPosting && !targetRole) {
+      return res.status(400).json({
+        message: 'Either jobPostingId or targetRole is required'
+      });
+    }
+
+    // Get basic analysis
+    const basicAnalysis = jobPosting ? aiService.analyzeResume(resume, jobPosting) : null;
+
+    // Get Gemini-enhanced analysis
+    let skillGapAnalysis = basicAnalysis;
+    try {
+      skillGapAnalysis = await geminiService.analyzeSkillGap(
+        resume.skills.map((skill) => ({ skill, proficiency: 'Intermediate' })),
+        jobPosting?.title || targetRole,
+        jobPosting?.requiredSkills || []
+      );
+    } catch (error) {
+      console.warn('Gemini skill gap analysis failed:', error.message);
+    }
+
+    // Generate AI roadmap
+    let roadmapData;
+    try {
+      roadmapData = await geminiService.generateLearningRoadmap(
+        skillGapAnalysis,
+        jobPosting?.title || targetRole,
+        aiService.determineCurrentLevel(resume)
+      );
+    } catch (error) {
+      console.warn('Gemini roadmap generation failed, using basic:', error.message);
+      roadmapData = {
+        phases: basicAnalysis ? aiService.createRoadmapPhases(basicAnalysis.missingSkills, resume.skills) : []
+      };
+    }
+
+    // Save to database
+    const savedRoadmap = await CareerRoadmap.create({
+      userId: req.userId,
+      jobPostingId: jobPosting?._id || null,
+      targetRole: jobPosting?.title || targetRole,
+      currentLevel: aiService.determineCurrentLevel(resume),
+      matchPercentage: skillGapAnalysis.matchPercentage || 0,
+      strengths: basicAnalysis?.matchedSkills || resume.skills.slice(0, 5),
+      gaps: skillGapAnalysis.missingSkills || (basicAnalysis?.missingSkills || []),
+      recommendations: skillGapAnalysis.recommendations || (basicAnalysis?.recommendations || []),
+      roadmapSteps: roadmapData.phases || []
+    });
+
+    res.status(201).json({
+      message: 'Career roadmap generated successfully',
+      roadmap: {
+        id: savedRoadmap._id,
+        targetRole: savedRoadmap.targetRole,
+        currentLevel: savedRoadmap.currentLevel,
+        matchPercentage: savedRoadmap.matchPercentage,
+        strengths: savedRoadmap.strengths,
+        gaps: savedRoadmap.gaps,
+        recommendations: savedRoadmap.recommendations,
+        roadmapSteps: savedRoadmap.roadmapSteps,
+        createdAt: savedRoadmap.createdAt
+      }
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Roadmap generation error:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Get user's career roadmaps
+router.get('/roadmaps', auth, async (req, res) => {
+  try {
+    const roadmaps = await CareerRoadmap.find({ userId: req.userId }).sort({ createdAt: -1 });
+    res.json(roadmaps);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Get specific roadmap
+router.get('/roadmaps/:id', auth, async (req, res) => {
+  try {
+    const roadmap = await CareerRoadmap.findById(req.params.id);
+    if (!roadmap) {
+      return res.status(404).json({ message: 'Roadmap not found' });
+    }
+
+    if (roadmap.userId.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    res.json(roadmap);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 

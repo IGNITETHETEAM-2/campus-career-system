@@ -1,4 +1,4 @@
-# Campus Management System - Requirements & Build Guide
+# Campus Career System - Requirements & Build Guide
 
 ## 📋 System Requirements
 

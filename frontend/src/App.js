@@ -6,9 +6,6 @@ import Feedback from './pages/Feedback';
 import Events from './pages/Events';
 import Notices from './pages/Notices';
 import CareerAnalysis from './pages/CareerAnalysis';
-import SkillGapAnalyzer from './pages/SkillGapAnalyzer';
-import LearningRoadmap from './pages/LearningRoadmap';
-import { apiCall } from './api';
 import './App.css';
 
 function App() {
@@ -17,18 +14,20 @@ function App() {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    const initializeApp = async () => {
+    const initializeApp = () => {
       try {
-        // Fetch current user from /me endpoint (uses cookie)
-        const userData = await apiCall('/auth/me');
-        if (userData) {
-          setUser(userData);
-          setPage(currentPage => currentPage === 'login' ? 'dashboard' : currentPage);
+        const token = localStorage.getItem('token');
+        const userData = localStorage.getItem('user');
+
+        if (token && userData) {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          setPage('dashboard');
         }
       } catch (error) {
-        console.error('Session initialization failed:', error.message);
-        setUser(null);
-        setPage('login');
+        console.error('Initialization error:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
       } finally {
         setIsInitialized(true);
       }
@@ -37,21 +36,25 @@ function App() {
     initializeApp();
   }, []);
 
-  const handleLogin = (userData) => {
-    setUser(userData);
-    setPage('dashboard');
+  const handleLogin = (userData, token) => {
+    try {
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', token);
+      setPage('dashboard');
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      await apiCall('/auth/logout', 'POST');
       setUser(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setPage('login');
     } catch (error) {
       console.error('Logout error:', error);
-      // Fallback: clear local state anyway
-      setUser(null);
-      setPage('login');
     }
   };
 
@@ -67,13 +70,11 @@ function App() {
     <div className="app">
       <Navbar user={user} setPage={setPage} setUser={handleLogout} />
       <main className="main-content">
-        {page === 'dashboard' && <Dashboard setPage={setPage} />}
-        {page === 'feedback' && <Feedback setPage={setPage} />}
-        {page === 'events' && <Events setPage={setPage} />}
-        {page === 'notices' && <Notices setPage={setPage} />}
-        {page === 'career-analysis' && <CareerAnalysis setPage={setPage} />}
-        {page === 'skill-gap' && <SkillGapAnalyzer setPage={setPage} />}
-        {page === 'roadmap' && <LearningRoadmap setPage={setPage} />}
+        {page === 'dashboard' && <Dashboard />}
+        {page === 'feedback' && <Feedback />}
+        {page === 'events' && <Events />}
+        {page === 'notices' && <Notices />}
+        {page === 'career-analysis' && <CareerAnalysis />}
       </main>
     </div>
   );

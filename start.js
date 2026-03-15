@@ -7,7 +7,7 @@ const isWindows = os.platform() === 'win32';
 
 console.log('\n');
 console.log('╔════════════════════════════════════════╗');
-console.log('║  🚀 Campus Management System Auto Start    ║');
+console.log('║  🚀 Campus Career System Auto Start    ║');
 console.log('║     Environment: Development           ║');
 console.log('╚════════════════════════════════════════╝');
 console.log('\n');
@@ -63,7 +63,7 @@ function startServers() {
   let frontendStarted = false;
 
   console.log('📦 Starting Backend Server on port 5000...\n');
-
+  
   const backendProcess = spawn(isWindows ? 'npm.cmd' : 'npm', ['run', 'dev'], {
     cwd: backendDir,
     stdio: 'inherit',
@@ -85,13 +85,13 @@ function startServers() {
   // Wait for backend to be ready before starting frontend
   setTimeout(() => {
     console.log('\n🎨 Starting Frontend React App on port 3000...\n');
-
+    
     const frontendProcess = spawn(isWindows ? 'npm.cmd' : 'npm', ['start'], {
       cwd: frontendDir,
       stdio: 'inherit',
       shell: isWindows,
-      env: {
-        ...process.env,
+      env: { 
+        ...process.env, 
         REACT_APP_API_URL: 'http://localhost:5000/api',
         BROWSER: 'none'
       }

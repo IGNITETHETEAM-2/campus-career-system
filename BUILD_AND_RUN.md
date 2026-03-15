@@ -1,4 +1,4 @@
-# Build and Run Guide - Campus Management System
+# Build and Run Guide - Campus Career System
 
 ## ⚠️ Prerequisites - MUST INSTALL FIRST
 
@@ -187,7 +187,7 @@ Expected response:
 ```
 http://localhost:3000
 ```
-Should show the Campus Management System login page.
+Should show the Campus Career System login page.
 
 ## 🐛 Troubleshooting
 

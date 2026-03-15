@@ -1,11 +1,4 @@
-// In Vercel builds, set REACT_APP_API_URL to your backend API base URL.
-// Recommended source: GitHub secret FRONTEND_API_URL injected into the build.
-// Example: https://your-backend.vercel.app/api
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
-if (process.env.NODE_ENV === 'production' && !process.env.REACT_APP_API_URL) {
-  console.warn('REACT_APP_API_URL is not defined in production environment!');
-}
 
 class APIError extends Error {
   constructor(status, message, details = null) {
@@ -21,13 +14,16 @@ export const apiCall = async (endpoint, method = 'GET', data = null, retries = 3
     try {
       const options = {
         method,
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          'Accept': 'application/json'
         }
       };
+
+      const token = localStorage.getItem('token');
+      if (token) {
+        options.headers.Authorization = `Bearer ${token}`;
+      }
 
       if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
         options.body = JSON.stringify(data);
@@ -37,15 +33,10 @@ export const apiCall = async (endpoint, method = 'GET', data = null, retries = 3
 
       // Handle different status codes
       if (response.status === 401) {
-        // If it's a login attempt, don't clear session/redirect, just throw error
-        if (endpoint.includes('/auth/login') || endpoint.includes('/auth/register')) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new APIError(401, errorData.message || 'Authentication failed');
-        }
-
-        // Unauthorized - clear auth (but don't redirect to root to avoid loops)
+        // Unauthorized - clear auth and redirect to login
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        window.location.href = '/';
         throw new APIError(401, 'Session expired. Please login again.');
       }
 
@@ -60,7 +51,7 @@ export const apiCall = async (endpoint, method = 'GET', data = null, retries = 3
       if (response.status >= 400) {
         let errorMessage = `API Error: ${response.status} ${response.statusText}`;
         let details = null;
-
+        
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorData.message || errorMessage;
@@ -107,54 +98,13 @@ export const apiCallAuth = (endpoint, method = 'GET', data = null) => {
   });
 };
 
-// Helper for file-based resume upload (sends extracted text as JSON)
-export const apiUpload = async (endpoint, file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const text = e.target.result;
-        const data = await apiCall(endpoint, 'POST', {
-          resumeText: text,
-          fileName: file.name
-        });
-        resolve(data);
-      } catch (err) {
-        reject(err);
-      }
-    };
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsText(file);
-  });
-};
-
 // Helper to format error messages
 export const getErrorMessage = (error) => {
   if (error instanceof APIError) {
     return error.message;
   }
   if (error instanceof TypeError) {
-    // Check if it's a network error
-    if (error.message.includes('fetch') || error.message.includes('NetworkError')) {
-      return 'Cannot connect to server. Please check:\n1. Backend server is running (npm run dev in backend folder)\n2. Backend URL is correct in .env file\n3. Your internet connection';
-    }
     return 'Network error. Please check your connection.';
   }
   return error.message || 'An unknown error occurred';
-};
-
-// Add a function to check backend health
-export const checkBackendHealth = async () => {
-  try {
-    const response = await fetch(`${API_URL}/health`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    return response.ok;
-  } catch (error) {
-    console.error('Backend health check failed:', error);
-    return false;
-  }
 };

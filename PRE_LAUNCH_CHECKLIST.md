@@ -1,4 +1,4 @@
-# Campus Management System - Pre-Launch Checklist
+# Campus Career System - Pre-Launch Checklist
 
 Use this checklist to ensure your application is ready for development and production use.
 

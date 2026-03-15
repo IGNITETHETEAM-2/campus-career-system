@@ -5,6 +5,7 @@ const resumeSchema = new mongoose.Schema({
   fullName: String,
   email: String,
   phone: String,
+  summary: String,
   skills: [String],
   experience: [
     {
@@ -32,7 +33,16 @@ const resumeSchema = new mongoose.Schema({
   ],
   certifications: [String],
   resumeText: String,
-  fileName: String,
+  // File upload fields
+  fileData: {
+    originalName: String,
+    mimeType: String,
+    size: Number,
+    buffer: Buffer // Stores the file in binary format
+  },
+  // Parsing metadata
+  isParsed: { type: Boolean, default: false },
+  parseError: String,
   uploadedAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

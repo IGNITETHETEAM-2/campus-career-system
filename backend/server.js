@@ -6,9 +6,9 @@ const morgan = require('morgan');
 const compression = require('compression');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const { validateEnv } = require('./utils/envValidator');
-const cookieParser = require('cookie-parser');
 
 // Load environment variables
 dotenv.config();
@@ -31,57 +31,32 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// Cookie parser middleware
-app.use(cookieParser());
-
-// Rate limiting - prevent abuse (DISABLED for easy testing)
-// Rate limiting - prevent abuse (DISABLED for easy testing)
-// const limiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   max: 10000, // limit each IP to 10000 requests per windowMs
-//   message: 'Too many requests from this IP, please try again later.',
-//   standardHeaders: true,
-//   legacyHeaders: false,
-// });
+// Rate limiting - prevent abuse
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Apply rate limiting to all requests
-// app.use('/api/', limiter);
+app.use('/api/', limiter);
 
-// Stricter rate limiting for auth endpoints (DISABLED)
-const authLimiter = (req, res, next) => next();
-
+// Stricter rate limiting for auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 requests per windowMs
+  message: 'Too many authentication attempts, please try again later.',
+  skipSuccessfulRequests: true,
+});
 
 // CORS configuration
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5000',
-  'http://localhost:5173',
-  'https://campus-career-system-c2tx.vercel.app',
-  'https://campus-career-system-c2tx-emxta2e86-vercel.app',
-  'https://campus-career-system-c2tx-g6hn8yqt3.vercel.app',
-  'https://frontend-g8epqm1nf-mohammedmuzhirtaha-9647s-projects.vercel.app',
-  'https://frontend-nine-wheat-76.vercel.app',
-  process.env.CORS_ORIGIN
-].filter(Boolean);
-
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-
-    const isDev = process.env.NODE_ENV === 'development';
-    const isAllowed = allowedOrigins.includes(origin);
-    const isVercel = /\.vercel\.app$/.test(new URL(origin).hostname);
-
-    if (isAllowed || isDev || isVercel) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? false : '*'),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Body parsing middleware
@@ -105,19 +80,11 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Database Connection
-(async () => {
-  await connectDB();
-})();
+connectDB();
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  const mongoose = require('mongoose');
-  res.json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
-    node_env: process.env.NODE_ENV
-  });
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // Routes
@@ -126,7 +93,6 @@ app.use('/api/feedback', require('./routes/feedbackRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
 app.use('/api/notices', require('./routes/noticeRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
-app.use('/api/skill-gap', require('./routes/skillGapRoutes'));
 
 // 404 handler
 app.use((req, res) => {
@@ -135,7 +101,6 @@ app.use((req, res) => {
 
 // Global error handler - improved error handling
 app.use((err, req, res, next) => {
-  if (next) { /* Keep next for middleware signature */ }
   // Log error details
   console.error('Error:', {
     message: err.message,
@@ -178,36 +143,28 @@ app.use((err, req, res, next) => {
   const statusCode = err.status || err.statusCode || 500;
   res.status(statusCode).json({
     error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && {
+    ...(process.env.NODE_ENV === 'development' && { 
       stack: err.stack,
-      details: err.details
+      details: err.details 
     })
   });
 });
 
-let server;
-
-if (require.main === module) {
-  const PORT = process.env.PORT || 5000;
-  server = app.listen(PORT, () => {
-    console.log(`\n${'='.repeat(50)}`);
-    console.log(`✓ Server running on port ${PORT}`);
-    console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`${'='.repeat(50)}\n`);
-  });
-}
+const PORT = process.env.PORT || 5000;
+const server = app.listen(PORT, () => {
+  console.log(`\n${'='.repeat(50)}`);
+  console.log(`✓ Server running on port ${PORT}`);
+  console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`${'='.repeat(50)}\n`);
+});
 
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received. Shutting down gracefully...');
-  if (server) {
-    server.close(() => {
-      console.log('Server closed');
-      process.exit(0);
-    });
-  } else {
+  server.close(() => {
+    console.log('Server closed');
     process.exit(0);
-  }
+  });
 });
 
 module.exports = app;

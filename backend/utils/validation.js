@@ -14,9 +14,10 @@ const validators = {
     return emailRegex.test(email);
   },
 
-  // Password validation (min 6 chars)
+  // Password validation (min 6 chars, at least one uppercase, one number)
   isValidPassword: (password) => {
-    return password && password.length >= 6;
+    if (password.length < 6) return false;
+    return /[A-Z]/.test(password) && /\d/.test(password);
   },
 
   // Name validation
@@ -26,7 +27,7 @@ const validators = {
 
   // Phone validation (basic)
   isValidPhone: (phone) => {
-    const phoneRegex = /^[\d\s\-+()]{7,}$/;
+    const phoneRegex = /^[\d\s\-\+\(\)]{7,}$/;
     return phoneRegex.test(phone);
   },
 
@@ -42,9 +43,9 @@ const validators = {
 
   // Array of skills validation
   isValidSkillsArray: (skills) => {
-    return Array.isArray(skills) &&
-      skills.length > 0 &&
-      skills.every(skill => typeof skill === 'string' && skill.trim().length > 0);
+    return Array.isArray(skills) && 
+           skills.length > 0 && 
+           skills.every(skill => typeof skill === 'string' && skill.trim().length > 0);
   },
 
   // Date validation
@@ -59,7 +60,7 @@ const schemas = {
   registerUser: {
     name: { required: true, validator: validators.isValidName, message: 'Name must be 2-100 characters' },
     email: { required: true, validator: validators.isValidEmail, message: 'Invalid email format' },
-    password: { required: true, validator: validators.isValidPassword, message: 'Password must be at least 6 characters' },
+    password: { required: true, validator: validators.isValidPassword, message: 'Password must be 6+ chars with uppercase & number' },
     role: { required: true, validator: (v) => ['student', 'recruiter', 'admin'].includes(v), message: 'Invalid role' }
   },
 

@@ -1,6 +1,6 @@
-# 📖 START HERE - Campus Management System Documentation Index
+# 📖 START HERE - Campus Career System Documentation Index
 
-Welcome! Your Campus Management System is **complete and production-ready**. This file will guide you to the right documentation for your needs.
+Welcome! Your Campus Career System is **complete and production-ready**. This file will guide you to the right documentation for your needs.
 
 ---
 
@@ -344,7 +344,7 @@ Before proceeding, ensure you have:
 
 ## 🎉 You're All Set!
 
-Your Campus Management System is **complete, documented, and ready to use**.
+Your Campus Career System is **complete, documented, and ready to use**.
 
 **Start with**: [QUICK_START.md](./QUICK_START.md)  
 **Then explore**: The relevant documentation for your role  
