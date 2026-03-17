@@ -14,10 +14,9 @@ const validators = {
     return emailRegex.test(email);
   },
 
-  // Password validation (min 6 chars, at least one uppercase, one number)
+  // Password validation (min 6 chars)
   isValidPassword: (password) => {
-    if (password.length < 6) return false;
-    return /[A-Z]/.test(password) && /\d/.test(password);
+    return password && password.length >= 6;
   },
 
   // Name validation
@@ -43,9 +42,9 @@ const validators = {
 
   // Array of skills validation
   isValidSkillsArray: (skills) => {
-    return Array.isArray(skills) && 
-           skills.length > 0 && 
-           skills.every(skill => typeof skill === 'string' && skill.trim().length > 0);
+    return Array.isArray(skills) &&
+      skills.length > 0 &&
+      skills.every(skill => typeof skill === 'string' && skill.trim().length > 0);
   },
 
   // Date validation
@@ -60,8 +59,9 @@ const schemas = {
   registerUser: {
     name: { required: true, validator: validators.isValidName, message: 'Name must be 2-100 characters' },
     email: { required: true, validator: validators.isValidEmail, message: 'Invalid email format' },
-    password: { required: true, validator: validators.isValidPassword, message: 'Password must be 6+ chars with uppercase & number' },
-    role: { required: true, validator: (v) => ['student', 'recruiter', 'admin'].includes(v), message: 'Invalid role' }
+    password: { required: true, validator: validators.isValidPassword, message: 'Password must be at least 6 characters' },
+    // role is optional - defaults to 'student' if not provided
+    role: { required: false, validator: (v) => !v || ['student', 'recruiter', 'admin'].includes(v), message: 'Invalid role. Must be student, recruiter, or admin' }
   },
 
   loginUser: {

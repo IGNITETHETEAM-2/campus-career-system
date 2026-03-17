@@ -96,7 +96,7 @@ router.get('/jobs', async (req, res) => {
 router.post('/analyze', auth, async (req, res) => {
   try {
     const { jobPostingId, jobData } = req.body;
-    
+
     const resume = await Resume.findOne({ userId: req.userId });
     if (!resume) {
       return res.status(404).json({ message: 'Resume not found. Please upload your resume first.' });
@@ -144,15 +144,7 @@ router.post('/roadmap', auth, async (req, res) => {
   }
 });
 
-// Get user roadmaps
-router.get('/roadmaps', auth, async (req, res) => {
-  try {
-    const roadmaps = await CareerRoadmap.find({ userId: req.userId });
-    res.json(roadmaps);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
+// Get user roadmaps - defined below with sort
 
 // Upload/Update resume
 router.post('/resume', auth, async (req, res) => {
@@ -248,7 +240,10 @@ router.post('/resume/analyze', auth, async (req, res) => {
         requiredSkills: jobPosting.requiredSkills
       },
       analysis: {
-        matchPercentage: enhancedAnalysis.matchPercentage,
+        matchPercentage: enhancedAnalysis.matchPercentage ?? basicAnalysis.matchPercentage,
+        // Formula metadata: (matched / required) * 100
+        matchedCount: enhancedAnalysis.matchedCount ?? basicAnalysis.matchedCount,
+        requiredCount: enhancedAnalysis.requiredCount ?? basicAnalysis.requiredCount,
         matchedSkills: enhancedAnalysis.matchedSkills,
         missingSkills: enhancedAnalysis.missingSkills,
         strengthSkills: basicAnalysis.strengthSkills,

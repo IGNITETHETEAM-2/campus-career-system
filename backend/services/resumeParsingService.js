@@ -3,14 +3,26 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 class ResumeParsingService {
   constructor() {
+    this._genAI = null;
+    this._model = null;
+    this._initialized = false;
+  }
+
+  // Lazy initialization — read API key at call time
+  _init() {
+    if (this._initialized) return;
+    this._initialized = true;
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey) {
-      this.genAI = new GoogleGenerativeAI(apiKey);
-      this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      this._genAI = new GoogleGenerativeAI(apiKey);
+      this._model = this._genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     } else {
-      this.genAI = null;
+      this._genAI = null;
     }
   }
+
+  get genAI() { this._init(); return this._genAI; }
+  get model() { this._init(); return this._model; }
 
   /**
    * Extract text from PDF buffer

@@ -8,8 +8,8 @@ const router = express.Router();
 
 router.post('/register', validateRequest(schemas.registerUser), async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
-    
+    const { name, email, password, role = 'student' } = req.body;
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -18,12 +18,12 @@ router.post('/register', validateRequest(schemas.registerUser), async (req, res)
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     // Create user
     const user = new User({ name, email, password: hashedPassword, role });
     await user.save();
-    
-    res.status(201).json({ 
+
+    res.status(201).json({
       message: 'User registered successfully',
       user: { id: user._id, name: user.name, email: user.email, role: user.role }
     });
@@ -36,7 +36,7 @@ router.post('/register', validateRequest(schemas.registerUser), async (req, res)
 router.post('/login', validateRequest(schemas.loginUser), async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     // Find user
     const user = await User.findOne({ email });
     if (!user) {
@@ -86,6 +86,20 @@ router.post('/verify', (req, res) => {
     res.json({ valid: true, user: decoded });
   } catch (error) {
     res.status(401).json({ valid: false, message: 'Invalid token' });
+  }
+});
+
+// Get current user profile
+router.get('/me', require('../middleware/auth'), async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({ error: 'Failed to get profile' });
   }
 });
 

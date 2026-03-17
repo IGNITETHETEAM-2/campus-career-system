@@ -5,7 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
+// xss-clean removed (deprecated, causes issues on Node 18+). XSS protection is handled by Helmet CSP.
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const { validateEnv } = require('./utils/envValidator');
@@ -52,8 +52,26 @@ const authLimiter = rateLimit({
 });
 
 // CORS configuration
+// CORS_ORIGIN can be a comma-separated list of allowed origins (e.g., for Vercel + localhost)
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : null;
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? false : '*'),
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g., curl, mobile apps, Render health checks)
+    if (!origin) return callback(null, true);
+    // In development, allow all
+    if (process.env.NODE_ENV !== 'production') return callback(null, true);
+    // In production, check against allowed origins
+    if (!allowedOrigins || allowedOrigins.length === 0) {
+      return callback(new Error('CORS_ORIGIN env var not set in production'), false);
+    }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`Origin '${origin}' not allowed by CORS`), false);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -66,8 +84,7 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Data sanitization against NoSQL injection attacks
 app.use(mongoSanitize());
 
-// Data sanitization against XSS attacks
-app.use(xss());
+// XSS protection handled by Helmet CSP headers above
 
 // Compression middleware - compress responses
 app.use(compression());
@@ -93,6 +110,7 @@ app.use('/api/feedback', require('./routes/feedbackRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
 app.use('/api/notices', require('./routes/noticeRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
+app.use('/api/skill-gap', require('./routes/skillGapRoutes'));
 
 // 404 handler
 app.use((req, res) => {
@@ -143,9 +161,9 @@ app.use((err, req, res, next) => {
   const statusCode = err.status || err.statusCode || 500;
   res.status(statusCode).json({
     error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { 
+    ...(process.env.NODE_ENV === 'development' && {
       stack: err.stack,
-      details: err.details 
+      details: err.details
     })
   });
 });

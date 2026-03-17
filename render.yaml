@@ -4,18 +4,28 @@ services:
     env: node
     region: oregon
     plan: free
+    rootDir: backend
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: node server.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 5000
       - key: MONGO_URI
+        # Set to your MongoDB Atlas URI in Render dashboard
+        # e.g. mongodb+srv://user:pass@cluster.mongodb.net/campus-career?retryWrites=true&w=majority
         sync: false
       - key: JWT_SECRET
-        generateValue: true
+        # Set a stable secret in Render dashboard (do NOT use generateValue - it changes on every deploy)
+        # e.g. a long random string like: campus_career_jwt_secret_2024_abc123xyz
+        sync: false
       - key: GEMINI_API_KEY
+        # Set to your Google Gemini API key in Render dashboard
         sync: false
       - key: CORS_ORIGIN
+        # Set to your Vercel frontend URL in Render dashboard
+        # e.g. https://campus-career-system.vercel.app
+        # For multiple origins: https://campus-career-system.vercel.app,https://campus-career-system-git-main.vercel.app
         sync: false
+

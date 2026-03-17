@@ -2,15 +2,27 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 class GeminiService {
     constructor() {
+        this._genAI = null;
+        this._model = null;
+        this._initialized = false;
+    }
+
+    // Lazy initialization — read API key at call time so env vars are always loaded
+    _init() {
+        if (this._initialized) return;
+        this._initialized = true;
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
             console.warn('⚠️  GEMINI_API_KEY not found. AI features will use fallback mode.');
-            this.genAI = null;
+            this._genAI = null;
         } else {
-            this.genAI = new GoogleGenerativeAI(apiKey);
-            this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+            this._genAI = new GoogleGenerativeAI(apiKey);
+            this._model = this._genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
         }
     }
+
+    get genAI() { this._init(); return this._genAI; }
+    get model() { this._init(); return this._model; }
 
     /**
      * Analyze skill gaps using AI
@@ -143,6 +155,38 @@ Return ONLY valid JSON, no markdown formatting.`;
         }
     }
 
+    getSkillCourseMap() {
+        return {
+            'JavaScript': ['JavaScript: The Complete Guide 2024 (Udemy)', 'The Modern JavaScript Tutorial (javascript.info)', 'JavaScript30 Challenge (JavaScript30)'],
+            'TypeScript': ['Understanding TypeScript (Udemy)', 'TypeScript Handbook (TypeScript Docs)', 'No BS TS Series (YouTube – Jack Herrington)'],
+            'Python': ['Python Bootcamp: From Zero to Hero (Udemy)', 'Python for Everybody Specialization (Coursera)', 'Automate the Boring Stuff (automatetheboringstuff.com)'],
+            'React': ['React – The Complete Guide (Udemy)', 'The Joy of React (joyofreact.com)', 'Official React Docs (react.dev)'],
+            'Node.js': ['Node.js, Express, MongoDB Bootcamp (Udemy)', 'Node.js Official Docs (nodejs.org)', 'Node.js Crash Course (YouTube – Traversy Media)'],
+            'SQL': ['The Complete SQL Bootcamp (Udemy)', 'SQL for Data Science (Coursera)', 'Mode SQL Tutorial (Mode Analytics)'],
+            'MongoDB': ['MongoDB University M001: MongoDB Basics (MongoDB University)', 'MongoDB Developer Guide (Udemy)', 'MongoDB Crash Course (YouTube)'],
+            'AWS': ['AWS Certified Cloud Practitioner (AWS Training)', 'Ultimate AWS Certified Developer (Udemy)', 'A Cloud Guru AWS Paths (A Cloud Guru)'],
+            'Docker': ['Docker and Kubernetes: The Complete Guide (Udemy)', 'Play with Docker Labs (play-with-docker.com)', 'Docker Official Tutorial (Docker Docs)'],
+            'Kubernetes': ['Kubernetes for the Absolute Beginners (Udemy)', 'Kubernetes Interactive Tutorial (Kubernetes.io)', 'KodeKloud Kubernetes Labs (KodeKloud)'],
+            'Git': ['Git Complete: The Definitive Guide (Udemy)', 'GitHub Learning Lab (GitHub)', 'Pro Git Book (git-scm.com)'],
+            'Java': ['Java Programming Masterclass (Udemy)', 'Java Programming Fundamentals (Coursera – Duke)', 'Oracle Java Tutorials (docs.oracle.com)'],
+            'C++': ['Beginning C++ Programming (Udemy)', 'LearnCpp.com Tutorial (LearnCpp)', 'The Cherno C++ Series (YouTube)'],
+            'C#': ['C# Basics for Beginners (Udemy)', 'Microsoft C# Docs (Microsoft Docs)', 'Tim Corey C# Tutorials (YouTube)'],
+            '.NET': ['ASP.NET Core MVC Complete Guide (Udemy)', 'Microsoft .NET Learning Path (Microsoft Learn)', 'IAmTimCorey .NET Courses (YouTube)'],
+            'Azure': ['AZ-900: Azure Fundamentals (Microsoft Learn)', 'AZ-204: Developing on Azure (Microsoft Learn)', 'John Savill Azure Master Class (YouTube)'],
+            'Swift': ['100 Days of SwiftUI (Hacking with Swift)', 'iOS & Swift Bootcamp (Udemy)', 'Sean Allen iOS Tutorials (YouTube)'],
+            'GraphQL': ['GraphQL with React: Complete Guide (Udemy)', 'How to GraphQL (howtographql.com)', 'GraphQL Official Docs (graphql.org)'],
+            'Data Structures': ['Master the Coding Interview: DSA (Udemy)', 'DSA Specialization (Coursera – UC San Diego)', 'Abdul Bari Algorithms Course (YouTube)'],
+            'Algorithms': ['Algorithms Specialization (Coursera – Stanford)', 'Introduction to Algorithms (MIT OpenCourseWare)', 'NeetCode Roadmap (NeetCode.io)'],
+            'System Design': ['Grokking the System Design Interview (Educative)', 'System Design Primer (GitHub)', 'Gaurav Sen System Design (YouTube)'],
+            'Machine Learning': ['Machine Learning Specialization (Coursera – Andrew Ng)', 'Practical Deep Learning for Coders (fast.ai)', 'StatQuest with Josh Starmer (YouTube)'],
+            'REST APIs': ['REST API Design & Management (Udemy)', 'APIs for Beginners (freeCodeCamp – YouTube)', 'Postman Learning Center (Postman)'],
+            'Microservices': ['Microservices with Node.js and React (Udemy)', 'Martin Fowler Microservices Guide (martinfowler.com)', 'TechWorld Microservices Course (YouTube)'],
+            'NoSQL': ['MongoDB University M001 (MongoDB University)', 'Intro to NoSQL Databases (Coursera – IBM)', 'Redis University Courses (Redis University)'],
+            'Cloud Architecture': ['AWS Solutions Architect Associate (Udemy)', 'Cloud Architecture with GCP (Coursera)', 'The Cloud Resume Challenge (cloudresumechallenge.dev)'],
+            'default': ['Search topic courses (Coursera)', 'Search topic courses (Udemy)', 'Read Official Documentation', 'Search tutorials (YouTube)']
+        };
+    }
+
     // Fallback methods when AI is not available
     fallbackSkillGapAnalysis(currentSkills, targetRole, requiredSkills) {
         const currentSkillNames = currentSkills.map(s => s.skill.toLowerCase());
@@ -150,59 +194,118 @@ Return ONLY valid JSON, no markdown formatting.`;
             currentSkillNames.some(curr => curr.includes(req.toLowerCase()) || req.toLowerCase().includes(curr))
         );
         const missing = requiredSkills.filter(req => !matched.includes(req));
-        const matchPercentage = Math.round((matched.length / requiredSkills.length) * 100);
+        // Formula: (matched / required) * 100
+        const matchPercentage = requiredSkills.length > 0
+            ? Math.round((matched.length / requiredSkills.length) * 100)
+            : 100;
+        const courseMap = this.getSkillCourseMap();
 
         return {
             matchPercentage,
+            matchedCount: matched.length,
+            requiredCount: requiredSkills.length,
             matchedSkills: matched,
             missingSkills: missing,
             eligibilityScore: matchPercentage,
-            insights: `You have ${matchPercentage}% of the required skills for ${targetRole}. Focus on learning the missing skills to improve your eligibility.`,
+            insights: `You match ${matched.length} out of ${requiredSkills.length} required skills for ${targetRole} — a ${matchPercentage}% match. Focus on the missing skills to strengthen your profile.`,
             recommendations: missing.map((skill, i) => ({
                 skill,
                 priority: i < 3 ? 'high' : 'medium',
-                suggestedResources: ['Online courses', 'Documentation', 'Practice projects'],
-                estimatedTime: '2-4 weeks'
+                suggestedResources: courseMap[skill] || courseMap['default'],
+                estimatedTime: '3-4 weeks'
             }))
         };
     }
 
     fallbackRoadmapGeneration(skillGapAnalysis) {
         const missingCount = skillGapAnalysis.missingSkills.length;
+        const courseMap = this.getSkillCourseMap();
+        const phase1Skills = skillGapAnalysis.missingSkills.slice(0, 3);
+        const phase2Skills = skillGapAnalysis.missingSkills.slice(3, 6);
+
+        const getCourses = (skills) => skills.flatMap(skill =>
+            (courseMap[skill] || courseMap['default']).slice(0, 2)
+        );
+
+        const phases = [
+            {
+                phase: 1,
+                title: 'Foundation Building',
+                description: `Build foundational knowledge in: ${phase1Skills.join(', ') || 'core skills'}`,
+                duration: '4-6 weeks',
+                skills: phase1Skills,
+                activities: [
+                    ...getCourses(phase1Skills),
+                    'Complete daily hands-on coding exercises',
+                    'Build a small project for each new skill'
+                ],
+                resources: phase1Skills.flatMap(skill => courseMap[skill] || courseMap['default']),
+                milestones: ['Complete 2 beginner projects', 'Pass skill self-assessments']
+            }
+        ];
+
+        if (phase2Skills.length > 0) {
+            phases.push({
+                phase: 2,
+                title: 'Intermediate Skill Development',
+                description: `Deepen knowledge in: ${phase2Skills.join(', ')}`,
+                duration: '6-8 weeks',
+                skills: phase2Skills,
+                activities: [
+                    ...getCourses(phase2Skills),
+                    'Build 2-3 portfolio projects combining new skills',
+                    'Contribute to open-source repositories on GitHub'
+                ],
+                resources: phase2Skills.flatMap(skill => courseMap[skill] || courseMap['default']),
+                milestones: ['Complete 3 intermediate projects', 'Start GitHub portfolio']
+            });
+        }
+
+        phases.push({
+            phase: phase2Skills.length > 0 ? 3 : 2,
+            title: 'Portfolio & Advanced Practice',
+            description: 'Master skills through real-world projects and build a strong portfolio',
+            duration: '4-6 weeks',
+            skills: ['Portfolio Projects', 'System Design', 'Code Quality'],
+            activities: [
+                'System Design for Software Engineers (Educative)',
+                'Clean Code Fundamentals (Pluralsight)',
+                'Build an end-to-end capstone project',
+                'Write technical blog posts or case studies'
+            ],
+            resources: [
+                'System Design Primer (GitHub)',
+                'Educative.io System Design Path (Educative)',
+                'Clean Code Book (Robert C. Martin)',
+                'Tech With Tim Project Tutorials (YouTube)'
+            ],
+            milestones: ['Deploy capstone project', 'Publish 2 case studies']
+        });
+
+        phases.push({
+            phase: phase2Skills.length > 0 ? 4 : 3,
+            title: 'Interview Preparation',
+            description: 'Prepare for technical and behavioural interviews',
+            duration: '2-3 weeks',
+            skills: ['Data Structures & Algorithms', 'System Design', 'Behavioural Interviews'],
+            activities: [
+                'LeetCode Top Interview 150 (LeetCode)',
+                'Grokking the Coding Interview (Educative)',
+                'Mock Interviews on Pramp (Pramp)',
+                'STAR Method Behavioural Prep (YouTube)'
+            ],
+            resources: [
+                'LeetCode Top Interview 150 (LeetCode)',
+                'Grokking the Coding Interview (Educative)',
+                'InterviewBit Practice Problems (InterviewBit)',
+                'Pramp Mock Interview Sessions (Pramp)'
+            ],
+            milestones: ['Solve 100 coding problems', 'Complete 3 mock interviews']
+        });
+
         return {
             totalDuration: `${Math.max(12, missingCount * 3)}-${Math.max(16, missingCount * 4)} weeks`,
-            phases: [
-                {
-                    phase: 1,
-                    title: 'Foundation Building',
-                    description: 'Learn core missing skills',
-                    duration: '4-6 weeks',
-                    skills: skillGapAnalysis.missingSkills.slice(0, 3),
-                    activities: ['Online courses', 'Practice exercises', 'Small projects'],
-                    resources: ['freeCodeCamp', 'Coursera', 'Udemy'],
-                    milestones: ['Complete 2 beginner projects', 'Pass skill assessments']
-                },
-                {
-                    phase: 2,
-                    title: 'Skill Development',
-                    description: 'Deepen knowledge and build projects',
-                    duration: '6-8 weeks',
-                    skills: skillGapAnalysis.missingSkills.slice(3),
-                    activities: ['Build portfolio projects', 'Contribute to open source'],
-                    resources: ['GitHub', 'Project tutorials', 'Documentation'],
-                    milestones: ['Complete 3 intermediate projects', 'Build portfolio']
-                },
-                {
-                    phase: 3,
-                    title: 'Interview Preparation',
-                    description: 'Prepare for job applications',
-                    duration: '2-4 weeks',
-                    skills: ['Interview skills', 'Resume optimization'],
-                    activities: ['Mock interviews', 'LeetCode practice', 'Resume updates'],
-                    resources: ['LeetCode', 'InterviewBit', 'Pramp'],
-                    milestones: ['Complete 50 coding problems', 'Update resume']
-                }
-            ]
+            phases
         };
     }
 

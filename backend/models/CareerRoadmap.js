@@ -22,7 +22,10 @@ const roadmapSchema = new mongoose.Schema({
       title: String,
       description: String,
       duration: String,
-      activities: [String]
+      skills: [String],
+      activities: [String],
+      resources: [String],
+      milestones: [String]
     }
   ],
   generatedAt: { type: Date, default: Date.now },
