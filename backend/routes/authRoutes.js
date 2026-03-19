@@ -29,7 +29,10 @@ router.post('/register', validateRequest(schemas.registerUser), async (req, res)
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    if (error.name === 'MongooseError' || error.name === 'MongoServerError') {
+      return res.status(503).json({ error: 'Database unavailable. Please try again in a moment.' });
+    }
+    res.status(500).json({ error: 'Registration failed. Please try again.' });
   }
 });
 
@@ -70,7 +73,10 @@ router.post('/login', validateRequest(schemas.loginUser), async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    if (error.name === 'MongooseError' || error.name === 'MongoServerError') {
+      return res.status(503).json({ error: 'Database unavailable. Please try again in a moment.' });
+    }
+    res.status(500).json({ error: 'Login failed. Please try again.' });
   }
 });
 

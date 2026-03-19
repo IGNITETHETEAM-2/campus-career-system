@@ -12,10 +12,11 @@ const connectDB = async () => {
       console.log(`📍 Connection string: ${mongoUri.replace(/\/\/.*@/, '//***:***@')}`); // Hide credentials
       
       await mongoose.connect(mongoUri, {
-        serverSelectionTimeoutMS: 10000, // Increased timeout
-        socketTimeoutMS: 45000,
+        serverSelectionTimeoutMS: 30000, // 30s — gives Atlas time to accept connection on cold start
+        socketTimeoutMS: 60000,
+        connectTimeoutMS: 30000,
         maxPoolSize: 10,
-        minPoolSize: 2,
+        minPoolSize: 1,
         retryWrites: true,
         w: 'majority'
       });

@@ -52,6 +52,10 @@ export const apiCall = async (endpoint, method = 'GET', data = null, retries = 3
         throw new APIError(429, 'Too many requests. Please wait a moment before trying again.');
       }
 
+      if (response.status === 503) {
+        throw new APIError(503, 'Service temporarily unavailable. Please try again in a few seconds.');
+      }
+
       if (response.status >= 400) {
         let errorMessage = `API Error: ${response.status} ${response.statusText}`;
         let details = null;
