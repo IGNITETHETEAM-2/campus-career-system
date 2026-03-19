@@ -61,7 +61,8 @@ function CareerAnalysis() {
       setLoading(true);
       const uploadFormData = new FormData();
       uploadFormData.append('resume', resumeFile);
-      const response = await fetch('/api/ai/resume/upload', {
+      const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_BASE}/ai/resume/upload`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         body: uploadFormData

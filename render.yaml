@@ -10,8 +10,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 5000
       - key: MONGO_URI
         # Set to your MongoDB Atlas URI in Render dashboard
         # e.g. mongodb+srv://user:pass@cluster.mongodb.net/campus-career?retryWrites=true&w=majority
