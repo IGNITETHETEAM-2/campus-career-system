@@ -48,6 +48,10 @@ export const apiCall = async (endpoint, method = 'GET', data = null, retries = 3
         throw new APIError(404, 'Resource not found');
       }
 
+      if (response.status === 429) {
+        throw new APIError(429, 'Too many requests. Please wait a moment before trying again.');
+      }
+
       if (response.status >= 400) {
         let errorMessage = `API Error: ${response.status} ${response.statusText}`;
         let details = null;
@@ -76,6 +80,7 @@ export const apiCall = async (endpoint, method = 'GET', data = null, retries = 3
       }
 
       // Only retry on network errors or 5xx server errors
+      // Do NOT retry on 4xx errors (including 429 rate limits)
       if (!isNetworkError && isAPIError && error.status < 500) {
         throw error;
       }

@@ -34,8 +34,8 @@ app.use(helmet({
 // Rate limiting - prevent abuse
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
+  max: 200, // limit each IP to 200 requests per windowMs
+  message: { error: 'Too many requests. Please wait a moment and try again.', retryAfter: '15 minutes' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -46,9 +46,9 @@ app.use('/api/', limiter);
 // Stricter rate limiting for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs
-  message: 'Too many authentication attempts, please try again later.',
-  skipSuccessfulRequests: true,
+  max: 20, // limit each IP to 20 failed auth requests per windowMs
+  message: { error: 'Too many login attempts. Please wait 15 minutes and try again.', retryAfter: '15 minutes' },
+  skipSuccessfulRequests: true, // successful logins do NOT count toward the limit
 });
 
 // CORS configuration

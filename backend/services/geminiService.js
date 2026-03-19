@@ -59,7 +59,12 @@ Return ONLY valid JSON, no markdown formatting.`;
 
             return analysis;
         } catch (error) {
-            console.error('Gemini AI Error:', error.message);
+            // 429 = quota exceeded — fall back immediately, no retry
+            if (error.status === 429 || (error.message && error.message.includes('429'))) {
+                console.warn('⚠️  Gemini quota exceeded (429). Using fallback analysis.');
+            } else {
+                console.error('Gemini AI Error:', error.message);
+            }
             return this.fallbackSkillGapAnalysis(currentSkills, targetRole, requiredSkills);
         }
     }
@@ -104,7 +109,12 @@ Return ONLY valid JSON, no markdown formatting.`;
 
             return roadmap;
         } catch (error) {
-            console.error('Gemini AI Error:', error.message);
+            // 429 = quota exceeded — fall back immediately
+            if (error.status === 429 || (error.message && error.message.includes('429'))) {
+                console.warn('⚠️  Gemini quota exceeded (429). Using fallback roadmap.');
+            } else {
+                console.error('Gemini AI Error:', error.message);
+            }
             return this.fallbackRoadmapGeneration(skillGapAnalysis);
         }
     }
@@ -150,7 +160,12 @@ Return ONLY valid JSON, no markdown formatting.`;
 
             return verification;
         } catch (error) {
-            console.error('Gemini AI Error:', error.message);
+            // 429 = quota exceeded — fall back immediately
+            if (error.status === 429 || (error.message && error.message.includes('429'))) {
+                console.warn('⚠️  Gemini quota exceeded (429). Using fallback verification.');
+            } else {
+                console.error('Gemini AI Error:', error.message);
+            }
             return this.fallbackResumeVerification(resume, jobRole, requiredSkills);
         }
     }
