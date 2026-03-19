@@ -18,6 +18,11 @@ validateEnv();
 
 const app = express();
 
+// Trust the first proxy hop (required for Render/Vercel/Heroku deployments)
+// Without this, express-rate-limit throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR
+// and blocks ALL requests behind a reverse proxy/load balancer
+app.set('trust proxy', 1);
+
 // Security middleware - Helmet sets various HTTP headers
 app.use(helmet({
   contentSecurityPolicy: {
