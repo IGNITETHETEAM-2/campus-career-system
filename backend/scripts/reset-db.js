@@ -27,7 +27,7 @@ const clearData = async () => {
         try {
             await mongoose.connection.collection('loginhistories').deleteMany({});
             console.log('✓ Login History cleared');
-        } catch (e) {
+        } catch {
             console.log('! Login History collection might not exist, skipping.');
         }
 

@@ -90,7 +90,8 @@ router.post('/verify', (req, res) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
     res.json({ valid: true, user: decoded });
-  } catch (error) {
+  } catch (err) {
+    console.error('Token verification error:', err.message);
     res.status(401).json({ valid: false, message: 'Invalid token' });
   }
 });

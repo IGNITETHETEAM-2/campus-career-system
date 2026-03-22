@@ -123,6 +123,7 @@ app.use((req, res) => {
 });
 
 // Global error handler - improved error handling
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   // Log error details
   console.error('Error:', {

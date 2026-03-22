@@ -240,12 +240,12 @@ router.post('/resume/analyze', auth, async (req, res) => {
         requiredSkills: jobPosting.requiredSkills
       },
       analysis: {
-        // Enforce strict mathematical accuracy for the UI formula
-        matchPercentage: basicAnalysis.matchPercentage,
-        matchedCount: basicAnalysis.matchedCount,
-        requiredCount: basicAnalysis.requiredCount,
-        matchedSkills: basicAnalysis.matchedSkills,
-        missingSkills: basicAnalysis.missingSkills,
+        // Use Gemini's strict matching if available, otherwise fallback
+        matchPercentage: enhancedAnalysis ? enhancedAnalysis.matchPercentage : basicAnalysis.matchPercentage,
+        matchedCount: enhancedAnalysis ? enhancedAnalysis.matchedCount : basicAnalysis.matchedCount,
+        requiredCount: enhancedAnalysis ? enhancedAnalysis.requiredCount : basicAnalysis.requiredCount,
+        matchedSkills: enhancedAnalysis ? enhancedAnalysis.matchedSkills : basicAnalysis.matchedSkills,
+        missingSkills: enhancedAnalysis ? enhancedAnalysis.missingSkills : basicAnalysis.missingSkills,
         strengthSkills: basicAnalysis.strengthSkills,
         // Use AI only for text insights and recommendations
         summary: enhancedAnalysis?.insights || basicAnalysis.summary,

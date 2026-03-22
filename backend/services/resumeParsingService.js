@@ -135,7 +135,7 @@ Be thorough and extract all information. If a field is not found, use null or em
    */
   fallbackParsing(resumeText, email, name) {
     // Extract phone number
-    const phoneMatch = resumeText.match(/\b(?:\d{10}|[\d\s\-\(\)]{10,})\b/);
+    const phoneMatch = resumeText.match(/\b(?:\d{10}|[\d\s\-()]{10,})\b/);
     const phone = phoneMatch ? phoneMatch[0] : null;
 
     // Split by common keywords to find sections
