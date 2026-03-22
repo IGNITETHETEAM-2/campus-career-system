@@ -1,4 +1,5 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/fileUpload');
 const Resume = require('../models/Resume');
@@ -82,10 +83,32 @@ router.post('/resume/upload', auth, upload.single('resume'), async (req, res) =>
   }
 });
 
-// Get sample job postings
+// Get sample job postings and calculate match if user is logged in
 router.get('/jobs', async (req, res) => {
   try {
-    const jobs = aiService.getSampleJobPostings();
+    let jobs = aiService.getSampleJobPostings();
+
+    // Check for authorization header and calculate match if found
+    try {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7, authHeader.length);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        
+        const resume = await Resume.findOne({ userId: decoded.userId });
+        if (resume && resume.skills && resume.skills.length > 0) {
+          jobs = jobs.map(job => {
+            const analysis = aiService.analyzeResume(resume, job);
+            return { ...job, matchPercentage: analysis.matchPercentage };
+          });
+          
+          jobs.sort((a, b) => b.matchPercentage - a.matchPercentage);
+        }
+      }
+    } catch (err) {
+      console.error('Optional auth/sorting failed:', err.message);
+    }
+
     res.json(jobs);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -240,12 +263,12 @@ router.post('/resume/analyze', auth, async (req, res) => {
         requiredSkills: jobPosting.requiredSkills
       },
       analysis: {
-        // Use Gemini's strict matching if available, otherwise fallback
-        matchPercentage: enhancedAnalysis ? enhancedAnalysis.matchPercentage : basicAnalysis.matchPercentage,
-        matchedCount: enhancedAnalysis ? enhancedAnalysis.matchedCount : basicAnalysis.matchedCount,
-        requiredCount: enhancedAnalysis ? enhancedAnalysis.requiredCount : basicAnalysis.requiredCount,
-        matchedSkills: enhancedAnalysis ? enhancedAnalysis.matchedSkills : basicAnalysis.matchedSkills,
-        missingSkills: enhancedAnalysis ? enhancedAnalysis.missingSkills : basicAnalysis.missingSkills,
+        // Enforce strict mathematical accuracy for the UI formula
+        matchPercentage: basicAnalysis.matchPercentage,
+        matchedCount: basicAnalysis.matchedCount,
+        requiredCount: basicAnalysis.requiredCount,
+        matchedSkills: basicAnalysis.matchedSkills,
+        missingSkills: basicAnalysis.missingSkills,
         strengthSkills: basicAnalysis.strengthSkills,
         // Use AI only for text insights and recommendations
         summary: enhancedAnalysis?.insights || basicAnalysis.summary,

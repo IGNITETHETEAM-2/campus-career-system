@@ -40,7 +40,7 @@ Required Skills: ${requiredSkills.join(', ')}
 Current Skills: ${currentSkills.map(s => `${s.skill} (${s.proficiency})`).join(', ')}
 
 Provide a detailed analysis in JSON format with:
-1. matchPercentage (0-100, calculate perfectly using formula: (number of matchedSkills) / (number of matchedSkills + number of requiredSkills) * 100)
+1. matchPercentage (0-100)
 2. matchedSkills (array of skills they have)
 3. missingSkills (array of skills they need)
 4. eligibilityScore (0-100, considering proficiency levels)
@@ -213,9 +213,9 @@ Return ONLY valid JSON, no markdown formatting.`;
             currentSkillNames.some(curr => curr.includes(req.toLowerCase()) || req.toLowerCase().includes(curr))
         );
         const missing = requiredSkills.filter(req => !matched.includes(req));
-        // Formula: (matched / (matched + required)) * 100
+        // Formula: (matched / required) * 100
         const matchPercentage = requiredSkills.length > 0
-            ? Math.round((matched.length / (matched.length + requiredSkills.length)) * 100)
+            ? Math.round((matched.length / requiredSkills.length) * 100)
             : 100;
         const courseMap = this.getSkillCourseMap();
 
@@ -332,7 +332,7 @@ Return ONLY valid JSON, no markdown formatting.`;
         const matchedSkills = resume.skills.filter(skill =>
             requiredSkills.some(req => skill.toLowerCase().includes(req.toLowerCase()))
         );
-        const score = Math.round((matchedSkills.length / (matchedSkills.length + requiredSkills.length)) * 100);
+        const score = Math.round((matchedSkills.length / requiredSkills.length) * 100);
 
         return {
             eligibilityScore: score,

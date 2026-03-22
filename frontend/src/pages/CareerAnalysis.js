@@ -72,6 +72,7 @@ function CareerAnalysis() {
       setResume(data.resume);
       setShowResumeForm(false);
       setResumeFile(null);
+      fetchJobs(); // Refresh jobs to get updated sorting and match percentages
     } catch (err) {
       setError('Failed to upload resume: ' + err.message);
     } finally {
@@ -215,7 +216,23 @@ function CareerAnalysis() {
             <div key={job._id} className="job-card">
               <div className="job-card-header">
                 <h4>{job.title}</h4>
-                <span className="company-badge">{job.company}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {job.matchPercentage !== undefined && (
+                    <span 
+                      style={{ 
+                        fontWeight: 'bold', 
+                        color: getMatchColor(job.matchPercentage),
+                        background: `${getMatchColor(job.matchPercentage)}20`,
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.85em'
+                      }}
+                    >
+                      {job.matchPercentage}% Match
+                    </span>
+                  )}
+                  <span className="company-badge">{job.company}</span>
+                </div>
               </div>
               <p className="job-desc">{job.description}</p>
               <div className="job-meta">
@@ -281,9 +298,9 @@ function CareerAnalysis() {
                   <h3>Match Score</h3>
                   <div className="formula-box">
                     <span className="formula-text">
-                      <span className="formula-part">{matchedCount} skills</span>
+                      <span className="formula-part">{matchedCount} matched</span>
                       <span className="formula-div"> ÷ </span>
-                      <span className="formula-part">({matchedCount} skills + {requiredCount} required)</span>
+                      <span className="formula-part">{requiredCount} required</span>
                       <span className="formula-div"> × 100 = </span>
                       <span className="formula-result" style={{ color: getMatchColor(matchPct) }}>{matchPct}%</span>
                     </span>
@@ -304,7 +321,7 @@ function CareerAnalysis() {
               {/* ── Skills ── */}
               <div className="skills-grid">
                 <div className="skills-panel matched-panel">
-                  <h4>✅ Present Skills <span className="skills-count">{analysis.matchedSkills?.length}</span></h4>
+                  <h4>✅ Matched Skills <span className="skills-count">{analysis.matchedSkills?.length}</span></h4>
                   <div className="skill-chips">
                     {analysis.matchedSkills?.map((s, i) => <span key={i} className="chip chip-matched">{s}</span>)}
                   </div>

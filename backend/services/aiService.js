@@ -5,7 +5,7 @@ class AIService {
     const missingSkills = this.findMissingSkills(resume.skills, jobPosting.requiredSkills);
     const strengthSkills = this.findExtraSkills(resume.skills, jobPosting.requiredSkills);
 
-    // Formula: (skills / (skills + required)) * 100
+    // Formula: (matched / required) * 100
     const matchPercentage = this.calculateMatchPercentage(
       matchedSkills.length,
       jobPosting.requiredSkills.length
@@ -47,10 +47,10 @@ class AIService {
       normalize(skill2).includes(normalize(skill1));
   }
 
-  // matchPercentage = (matched / (matched + required)) * 100
+  // matchPercentage = (matched / required) * 100
   calculateMatchPercentage(matched, required) {
     if (required === 0) return 100;
-    return Math.round((matched / (matched + required)) * 100);
+    return Math.round((matched / required) * 100);
   }
 
   generateSummary(percentage) {
