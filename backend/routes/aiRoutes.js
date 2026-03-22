@@ -221,7 +221,7 @@ router.post('/resume/analyze', auth, async (req, res) => {
     const basicAnalysis = aiService.analyzeResume(resume, jobPosting);
 
     // Enhanced analysis using Gemini AI if available
-    let enhancedAnalysis = basicAnalysis;
+    let enhancedAnalysis = null;
     try {
       enhancedAnalysis = await geminiService.analyzeSkillGap(
         resume.skills.map((skill) => ({ skill, proficiency: 'Intermediate' })),
@@ -240,16 +240,16 @@ router.post('/resume/analyze', auth, async (req, res) => {
         requiredSkills: jobPosting.requiredSkills
       },
       analysis: {
-        matchPercentage: enhancedAnalysis.matchPercentage ?? basicAnalysis.matchPercentage,
-        // Formula metadata: (matched / required) * 100
-        matchedCount: enhancedAnalysis.matchedCount ?? basicAnalysis.matchedCount,
-        requiredCount: enhancedAnalysis.requiredCount ?? basicAnalysis.requiredCount,
-        matchedSkills: enhancedAnalysis.matchedSkills,
-        missingSkills: enhancedAnalysis.missingSkills,
+        // Enforce strict mathematical accuracy for the UI formula
+        matchPercentage: basicAnalysis.matchPercentage,
+        matchedCount: basicAnalysis.matchedCount,
+        requiredCount: basicAnalysis.requiredCount,
+        matchedSkills: basicAnalysis.matchedSkills,
+        missingSkills: basicAnalysis.missingSkills,
         strengthSkills: basicAnalysis.strengthSkills,
-        summary: enhancedAnalysis.insights || basicAnalysis.summary,
-        recommendations:
-          enhancedAnalysis.recommendations || basicAnalysis.recommendations
+        // Use AI only for text insights and recommendations
+        summary: enhancedAnalysis?.insights || basicAnalysis.summary,
+        recommendations: enhancedAnalysis?.recommendations || basicAnalysis.recommendations
       }
     });
   } catch (error) {

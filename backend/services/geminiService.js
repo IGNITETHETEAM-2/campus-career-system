@@ -57,6 +57,23 @@ Return ONLY valid JSON, no markdown formatting.`;
             const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
             const analysis = JSON.parse(cleanText);
 
+            // Enforce mathematical strictness locally instead of relying on Gemini hallucinations
+            const currentSkillNames = currentSkills.map(s => (s.skill || s).toLowerCase());
+            const strictMatched = requiredSkills.filter(req =>
+                currentSkillNames.some(curr => curr.includes(req.toLowerCase()) || req.toLowerCase().includes(curr))
+            );
+            const strictMissing = requiredSkills.filter(req => !strictMatched.includes(req));
+            const strictMatchPercentage = requiredSkills.length > 0
+                ? Math.round((strictMatched.length / requiredSkills.length) * 100)
+                : 100;
+
+            // Override Gemini's hallucinated arrays/percentages with our strict variables
+            analysis.matchedSkills = strictMatched;
+            analysis.missingSkills = strictMissing;
+            analysis.matchPercentage = strictMatchPercentage;
+            analysis.matchedCount = strictMatched.length;
+            analysis.requiredCount = requiredSkills.length;
+
             return analysis;
         } catch (error) {
             // 429 = quota exceeded — fall back immediately, no retry
