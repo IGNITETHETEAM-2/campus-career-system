@@ -14,8 +14,11 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
+    if (req.userRole !== 'admin' && req.userRole !== 'recruiter') {
+      return res.status(403).json({ error: 'Only admins and recruiters can view all feedback' });
+    }
     const feedback = await Feedback.find().populate('userId');
     res.json(feedback);
   } catch (error) {

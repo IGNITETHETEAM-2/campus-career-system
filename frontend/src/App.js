@@ -71,9 +71,9 @@ function App() {
       <Navbar user={user} setPage={setPage} setUser={handleLogout} />
       <main className="main-content">
         {page === 'dashboard' && <Dashboard />}
-        {page === 'feedback' && <Feedback />}
-        {page === 'events' && <Events />}
-        {page === 'notices' && <Notices />}
+        {page === 'feedback' && <Feedback user={user} />}
+        {page === 'events' && <Events user={user} />}
+        {page === 'notices' && <Notices user={user} />}
         {page === 'career-analysis' && <CareerAnalysis />}
       </main>
     </div>

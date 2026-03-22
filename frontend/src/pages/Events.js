@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { apiCall } from '../api';
 
-function Events() {
+function Events({ user }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({ title: '', description: '', date: '', location: '' });
+
+  const isRecruiterOrAdmin = user?.role === 'recruiter' || user?.role === 'admin';
 
   useEffect(() => {
     fetchEvents();
@@ -36,7 +38,7 @@ function Events() {
       setFormData({ title: '', description: '', date: '', location: '' });
       fetchEvents();
     } catch (error) {
-      setError('Failed to create event');
+      setError('Failed to create event: ' + error.message);
     }
   };
 
@@ -44,13 +46,17 @@ function Events() {
     <div className="events-page">
       <h2>Events</h2>
       {error && <div className="error">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="title" placeholder="Event Title" value={formData.title} onChange={handleChange} required />
-        <textarea name="description" placeholder="Description" value={formData.description} onChange={handleChange}></textarea>
-        <input type="datetime-local" name="date" value={formData.date} onChange={handleChange} required />
-        <input type="text" name="location" placeholder="Location" value={formData.location} onChange={handleChange} />
-        <button type="submit">Create Event</button>
-      </form>
+      
+      {isRecruiterOrAdmin && (
+        <form onSubmit={handleSubmit}>
+          <input type="text" name="title" placeholder="Event Title" value={formData.title} onChange={handleChange} required />
+          <textarea name="description" placeholder="Description" value={formData.description} onChange={handleChange}></textarea>
+          <input type="datetime-local" name="date" value={formData.date} onChange={handleChange} required />
+          <input type="text" name="location" placeholder="Location" value={formData.location} onChange={handleChange} />
+          <button type="submit">Create Event</button>
+        </form>
+      )}
+
       {loading ? <p>Loading...</p> : (
         <div className="list-container">
           {events.length > 0 ? events.map(event => (

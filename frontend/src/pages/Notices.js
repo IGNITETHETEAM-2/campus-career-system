@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { apiCall } from '../api';
 
-function Notices() {
+function Notices({ user }) {
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({ title: '', content: '', expireAt: '' });
+
+  const isRecruiterOrAdmin = user?.role === 'recruiter' || user?.role === 'admin';
 
   useEffect(() => {
     fetchNotices();
@@ -36,7 +38,7 @@ function Notices() {
       setFormData({ title: '', content: '', expireAt: '' });
       fetchNotices();
     } catch (error) {
-      setError('Failed to post notice');
+      setError('Failed to post notice: ' + error.message);
     }
   };
 
@@ -44,12 +46,16 @@ function Notices() {
     <div className="notices-page">
       <h2>Notices</h2>
       {error && <div className="error">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="title" placeholder="Notice Title" value={formData.title} onChange={handleChange} required />
-        <textarea name="content" placeholder="Notice Content" value={formData.content} onChange={handleChange} required></textarea>
-        <input type="datetime-local" name="expireAt" value={formData.expireAt} onChange={handleChange} />
-        <button type="submit">Post Notice</button>
-      </form>
+      
+      {isRecruiterOrAdmin && (
+        <form onSubmit={handleSubmit}>
+          <input type="text" name="title" placeholder="Notice Title" value={formData.title} onChange={handleChange} required />
+          <textarea name="content" placeholder="Notice Content" value={formData.content} onChange={handleChange} required></textarea>
+          <input type="datetime-local" name="expireAt" value={formData.expireAt} onChange={handleChange} />
+          <button type="submit">Post Notice</button>
+        </form>
+      )}
+
       {loading ? <p>Loading...</p> : (
         <div className="list-container">
           {notices.length > 0 ? notices.map(notice => (

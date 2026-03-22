@@ -6,6 +6,9 @@ const router = express.Router();
 
 router.post('/', auth, async (req, res) => {
   try {
+    if (req.userRole !== 'admin' && req.userRole !== 'recruiter') {
+      return res.status(403).json({ error: 'Only admins and recruiters can post notices' });
+    }
     const notice = new Notice({ ...req.body, author: req.userId });
     await notice.save();
     res.status(201).json(notice);
