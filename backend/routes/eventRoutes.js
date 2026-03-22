@@ -6,6 +6,9 @@ const router = express.Router();
 
 router.post('/', auth, async (req, res) => {
   try {
+    if (req.userRole !== 'admin') {
+      return res.status(403).json({ error: 'Only admins can create events' });
+    }
     const event = new Event({ ...req.body, organizerId: req.userId });
     await event.save();
     res.status(201).json(event);
