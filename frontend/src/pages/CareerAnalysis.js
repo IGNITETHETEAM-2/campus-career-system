@@ -401,18 +401,7 @@ function CareerAnalysis() {
         <div className="ca-section">
           {roadmap ? (
             <>
-              <div className="roadmap-header-card">
-                <div>
-                  <h3>🎯 {roadmap.targetRole}</h3>
-                  <p>Level: <strong>{roadmap.currentLevel}</strong></p>
-                </div>
-                <div className="roadmap-match">
-                  <span style={{ color: getMatchColor(roadmap.matchPercentage) }} className="roadmap-pct">
-                    {roadmap.matchPercentage}%
-                  </span>
-                  <span>match</span>
-                </div>
-              </div>
+
 
               {/* ── Roadmap Phases / Steps ── */}
               <div className="phases-timeline">
