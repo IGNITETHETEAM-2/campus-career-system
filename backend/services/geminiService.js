@@ -86,8 +86,11 @@ Return ONLY valid JSON, no markdown formatting.`;
 
 Target Role: ${targetRole}
 Current Level: ${currentLevel}
-Missing Skills: ${skillGapAnalysis.missingSkills.join(', ')}
 Match Percentage: ${skillGapAnalysis.matchPercentage}%
+Matched Skills: ${(skillGapAnalysis.matchedSkills || []).join(', ')}
+Missing Skills: ${(skillGapAnalysis.missingSkills || []).join(', ')}
+Analysis Insights: ${skillGapAnalysis.insights || skillGapAnalysis.summary || 'N/A'}
+Prioritized Recommendations: ${JSON.stringify(skillGapAnalysis.recommendations || [])}
 
 Create a detailed learning roadmap in JSON format with:
 1. totalDuration (estimated total time like "16-24 weeks")
@@ -102,6 +105,7 @@ Create a detailed learning roadmap in JSON format with:
    - milestones (array of checkpoints)
 
 Make it practical, actionable, and tailored to their current level.
+CRITICAL INSTRUCTION: The roadmap phases, skills, and resources MUST directly align with and incorporate the "Prioritized Recommendations" and "Analysis Insights" provided.
 Return ONLY valid JSON, no markdown formatting.`;
 
             const result = await this.model.generateContent(prompt);
