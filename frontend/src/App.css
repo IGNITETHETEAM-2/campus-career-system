@@ -147,8 +147,7 @@ form button:hover {
 .login-logo {
   position: absolute;
   top: 40px;
-  width: 100%;
-  text-align: center;
+  left: 40px;
   color: white;
   text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
