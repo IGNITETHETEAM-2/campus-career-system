@@ -47,6 +47,9 @@ function Login({ setUser }) {
 
   return (
     <div className="login-page">
+      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+        <h1>🎓 Campus Career System</h1>
+      </div>
       <form onSubmit={handleSubmit}>
         <h2>{isLogin ? 'Login' : 'Register'}</h2>
         {error && <div className="error">{error}</div>}
