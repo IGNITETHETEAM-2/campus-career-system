@@ -86,7 +86,6 @@ Return ONLY valid JSON, no markdown formatting.`;
 
 Target Role: ${targetRole}
 Current Level: ${currentLevel}
-Match Percentage: ${skillGapAnalysis.matchPercentage}%
 Matched Skills: ${(skillGapAnalysis.matchedSkills || []).join(', ')}
 Missing Skills: ${(skillGapAnalysis.missingSkills || []).join(', ')}
 Analysis Insights: ${skillGapAnalysis.insights || skillGapAnalysis.summary || 'N/A'}
