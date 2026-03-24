@@ -14,6 +14,7 @@ function CareerAnalysis() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs' | 'analysis' | 'roadmap'
 
+
   useEffect(() => {
     fetchJobs();
     fetchResume();
@@ -112,6 +113,8 @@ function CareerAnalysis() {
       setLoading(false);
     }
   };
+
+
 
   /* ─── helpers ─── */
   const getMatchColor = (pct) => {
@@ -272,6 +275,7 @@ function CareerAnalysis() {
         <div className="ca-section">
           {analysis ? (
             <>
+
               {/* ── Match Score Card ── */}
               <div className="match-score-card">
                 <div className="match-left">

@@ -1,24 +1,53 @@
 class AIService {
   // Analyze resume against job requirements
   analyzeResume(resume, jobPosting) {
-    const matchedSkills = this.findMatchedSkills(resume.skills, jobPosting.requiredSkills);
-    const missingSkills = this.findMissingSkills(resume.skills, jobPosting.requiredSkills);
-    const strengthSkills = this.findExtraSkills(resume.skills, jobPosting.requiredSkills);
+    // Directly scan the full extracted resumeText for the job's required skills
+    const textAnalysis = this.calculateTextBasedMatch(resume.resumeText, jobPosting.requiredSkills);
 
-    // Formula: (matched / required) * 100
+    return {
+      matchPercentage: textAnalysis.matchPercentage,
+      matchedCount: textAnalysis.matchedCount,
+      requiredCount: textAnalysis.requiredCount,
+      matchedSkills: textAnalysis.matchedSkills,
+      missingSkills: textAnalysis.missingSkills,
+      strengthSkills: [], // Not applicable for strict text-based scanning
+      summary: this.generateSummary(textAnalysis.matchPercentage)
+    };
+  }
+
+  // Explicitly search resume text for specific skills (Full-Text Scan)
+  calculateTextBasedMatch(resumeText = '', targetSkills = []) {
+    if (!targetSkills || targetSkills.length === 0) {
+      return { matchPercentage: 100, matchedSkills: [], missingSkills: [] };
+    }
+
+    const matchedSkills = [];
+    const missingSkills = [];
+    const normalizedText = resumeText.toLowerCase();
+
+    targetSkills.forEach(skill => {
+      const cleanSkill = skill.trim();
+      if (!cleanSkill) return;
+      
+      // Look for the exact skill substring (lowercased)
+      if (normalizedText.includes(cleanSkill.toLowerCase())) {
+        matchedSkills.push(cleanSkill);
+      } else {
+        missingSkills.push(cleanSkill);
+      }
+    });
+
     const matchPercentage = this.calculateMatchPercentage(
       matchedSkills.length,
-      jobPosting.requiredSkills.length
+      matchedSkills.length + missingSkills.length
     );
 
     return {
       matchPercentage,
       matchedCount: matchedSkills.length,
-      requiredCount: jobPosting.requiredSkills.length,
+      requiredCount: matchedSkills.length + missingSkills.length,
       matchedSkills,
-      missingSkills,
-      strengthSkills,
-      summary: this.generateSummary(matchPercentage)
+      missingSkills
     };
   }
 
@@ -515,6 +544,50 @@ class AIService {
         experience: '2-5 years',
         salary: '$175k - $250k',
         location: 'Los Gatos, CA'
+      },
+      {
+        _id: 'spotify-data',
+        title: 'Data Scientist',
+        company: 'Spotify',
+        description: 'Shape the future of music recommendation algorithms',
+        requiredSkills: ['Python', 'SQL', 'Machine Learning', 'Data Structures', 'Statistics', 'R'],
+        preferredSkills: ['Spark', 'Scala', 'TensorFlow'],
+        experience: '2-4 years',
+        salary: '$140k - $190k',
+        location: 'New York, NY'
+      },
+      {
+        _id: 'stripe-frontend',
+        title: 'Frontend Engineer',
+        company: 'Stripe',
+        description: 'Craft world-class financial interfaces',
+        requiredSkills: ['JavaScript', 'TypeScript', 'React', 'HTML', 'CSS', 'GraphQL'],
+        preferredSkills: ['Next.js', 'Figma', 'Jest'],
+        experience: '1-3 years',
+        salary: '$150k - $210k',
+        location: 'San Francisco, CA'
+      },
+      {
+        _id: 'tesla-devops',
+        title: 'DevOps Engineer',
+        company: 'Tesla',
+        description: 'Maintain high availability for distributed vehicle telemetry systems',
+        requiredSkills: ['Linux', 'Docker', 'Kubernetes', 'Python', 'AWS', 'CI/CD'],
+        preferredSkills: ['Terraform', 'Ansible', 'Bash'],
+        experience: '3-6 years',
+        salary: '$160k - $200k',
+        location: 'Austin, TX'
+      },
+      {
+        _id: 'airbnb-product',
+        title: 'Technical Product Manager',
+        company: 'Airbnb',
+        description: 'Drive the roadmap for our core search and booking experiences',
+        requiredSkills: ['Agile', 'Product Requirements', 'Data Analysis', 'SQL', 'A/B Testing'],
+        preferredSkills: ['Jira', 'Figma', 'Python'],
+        experience: '3-5 years',
+        salary: '$150k - $195k',
+        location: 'Remote'
       }
     ];
   }

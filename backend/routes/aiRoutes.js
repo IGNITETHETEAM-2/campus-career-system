@@ -115,6 +115,33 @@ router.get('/jobs', async (req, res) => {
   }
 });
 
+// Explicit Text-Based Skill Scan
+router.post('/resume/search-skills', auth, async (req, res) => {
+  try {
+    const { targetSkills } = req.body;
+
+    if (!targetSkills || !Array.isArray(targetSkills)) {
+      return res.status(400).json({ message: 'A valid array of targetSkills is required' });
+    }
+
+    const resume = await Resume.findOne({ userId: req.userId });
+    if (!resume || !resume.resumeText) {
+      return res.status(404).json({ message: 'Resume not found or has no text to parse. Please upload your resume first.' });
+    }
+
+    // Call the text-based match method
+    const result = aiService.calculateTextBasedMatch(resume.resumeText, targetSkills);
+
+    res.json({
+      message: 'Explicit skill match calculated successfully',
+      analysis: result
+    });
+  } catch (error) {
+    console.error('Skill search error:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Analyze resume against job
 router.post('/analyze', auth, async (req, res) => {
   try {
