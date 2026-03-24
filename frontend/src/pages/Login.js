@@ -47,7 +47,7 @@ function Login({ setUser }) {
 
   return (
     <div className="login-page">
-      <div style={{ textAlign: 'center', marginBottom: '20px', color: 'white' }}>
+      <div className="login-logo">
         <h1>🎓 Campus Career System</h1>
       </div>
       <form onSubmit={handleSubmit}>

@@ -140,7 +140,17 @@ form button:hover {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  position: relative;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-logo {
+  position: absolute;
+  top: 40px;
+  width: 100%;
+  text-align: center;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .login-page form {
